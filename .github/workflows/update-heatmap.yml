@@ -32,11 +32,10 @@ jobs:
 
       - name: Commit and push changes
         env:
-          PAT: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions"
           git add README.md
           git diff --staged --quiet || git commit -m "Update Strava activity heatmap [skip ci]"
-          git remote set-url origin https://$PAT@github.com/leesamuel423/RunGraph.git
-          git push
+          git push "https://$GITHUB_TOKEN@github.com/leesamuel423/RunGraph.git"
