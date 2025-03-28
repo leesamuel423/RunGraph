@@ -22,20 +22,41 @@ jobs:
         run: |
           go build -o strava-heatmap ./cmd/strava-heatmap
 
-      - name: Update Heatmap
+      - name: Generate Heatmap SVG
         env:
           STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
         run: |
-          ./strava-heatmap -update
-
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+          ./strava-heatmap -generate
+          ls -la
+      
+      - name: Checkout profile repository
+        uses: actions/checkout@v3
         with:
-          commit_message: Update Strava activity heatmap [skip ci]
-          file_pattern: README.md
-          commit_user_name: GitHub Actions
-          commit_user_email: github-actions[bot]@users.noreply.github.com
-          commit_author: GitHub Actions <github-actions[bot]@users.noreply.github.com>
-          push_options: '--force'
+          repository: leesamuel423/leesamuel423
+          path: profile
+          token: ${{ secrets.PAT }}
+      
+      - name: Update README in profile repository
+        run: |
+          # Backup the existing README
+          cp profile/README.md profile/README.md.bak
+          
+          # Get the content between the markers
+          SVG_CONTENT=$(cat README.md | sed -n '/<!-- STRAVA-HEATMAP-START -->/,/<!-- STRAVA-HEATMAP-END -->/p')
+          
+          # Replace the markers in the profile README
+          sed -i -e '/<!-- STRAVA-HEATMAP-START -->/,/<!-- STRAVA-HEATMAP-END -->/c\'"$SVG_CONTENT"'' profile/README.md
+          
+          # Check if changes were made
+          if ! diff profile/README.md profile/README.md.bak > /dev/null; then
+            cd profile
+            git config user.name "GitHub Actions"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "Update Strava activity heatmap [skip ci]"
+            git push
+          else
+            echo "No changes to commit"
+          fi
