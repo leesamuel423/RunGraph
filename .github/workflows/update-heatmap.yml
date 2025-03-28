@@ -40,23 +40,50 @@ jobs:
       
       - name: Update README in profile repository
         run: |
-          # Backup the existing README
-          cp profile/README.md profile/README.md.bak
+          # Generate the SVG file
+          ls -la
           
-          # Get the content between the markers
-          SVG_CONTENT=$(cat README.md | sed -n '/<!-- STRAVA-HEATMAP-START -->/,/<!-- STRAVA-HEATMAP-END -->/p')
+          # Extract SVG file path from the logs
+          SVG_FILE=$(ls -t *.svg 2>/dev/null | head -1 || echo "")
           
-          # Replace the markers in the profile README
-          sed -i -e '/<!-- STRAVA-HEATMAP-START -->/,/<!-- STRAVA-HEATMAP-END -->/c\'"$SVG_CONTENT"'' profile/README.md
-          
-          # Check if changes were made
-          if ! diff profile/README.md profile/README.md.bak > /dev/null; then
-            cd profile
-            git config user.name "GitHub Actions"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add README.md
-            git commit -m "Update Strava activity heatmap [skip ci]"
-            git push
-          else
-            echo "No changes to commit"
+          if [ -z "$SVG_FILE" ]; then
+            echo "No SVG file found, checking if -generate created it in a different location"
+            SVG_FILE=$(find . -name "*.svg" | head -1 || echo "")
+            
+            if [ -z "$SVG_FILE" ]; then
+              echo "ERROR: No SVG file generated. Check the logs."
+              exit 1
+            fi
           fi
+          
+          echo "Found SVG file: $SVG_FILE"
+          
+          # Check if the profile README has the markers
+          if ! grep -q "<!-- STRAVA-HEATMAP-START -->" profile/README.md || ! grep -q "<!-- STRAVA-HEATMAP-END -->" profile/README.md; then
+            echo "ERROR: Markers not found in profile README.md. Please add them first."
+            echo "Add these lines to your profile README:"
+            echo "<!-- STRAVA-HEATMAP-START -->"
+            echo "<!-- STRAVA-HEATMAP-END -->"
+            exit 1
+          fi
+          
+          # Create a temporary file
+          TEMP_FILE=$(mktemp)
+          
+          # Process the README file in three parts: before markers, SVG content, after markers
+          sed -n '1,/<!-- STRAVA-HEATMAP-START -->/p' profile/README.md > $TEMP_FILE
+          echo -e "\n" >> $TEMP_FILE
+          cat $SVG_FILE >> $TEMP_FILE
+          echo -e "\n" >> $TEMP_FILE
+          sed -n '/<!-- STRAVA-HEATMAP-END -->/,$p' profile/README.md >> $TEMP_FILE
+          
+          # Replace the original README with our modified version
+          cp $TEMP_FILE profile/README.md
+          
+          # Commit and push the changes
+          cd profile
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update Strava activity heatmap [skip ci]"
+          git push
