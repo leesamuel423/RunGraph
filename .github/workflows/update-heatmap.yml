@@ -31,10 +31,12 @@ jobs:
           ./strava-heatmap -update
 
       - name: Commit and push changes
+        env:
+          PAT: ${{ secrets.PAT }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions"
           git add README.md
           git diff --staged --quiet || git commit -m "Update Strava activity heatmap [skip ci]"
-          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
+          git remote set-url origin https://${PAT}@github.com/leesamuel423/RunGraph.git
           git push
