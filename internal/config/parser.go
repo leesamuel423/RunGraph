@@ -9,27 +9,27 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	ActivityTypes        []string `json:"activityTypes"`
-	MetricType           string   `json:"metricType"`
-	ColorScheme          string   `json:"colorScheme"`
-	CustomColors         []string `json:"customColors"`
-	ShowStats            bool     `json:"showStats"`
-	StatTypes            []string `json:"statTypes"`
-	DateRange            string   `json:"dateRange"`
-	CustomDateRange      struct {
+	ActivityTypes   []string `json:"activityTypes"`
+	MetricType      string   `json:"metricType"`
+	ColorScheme     string   `json:"colorScheme"`
+	CustomColors    []string `json:"customColors"`
+	ShowStats       bool     `json:"showStats"`
+	StatTypes       []string `json:"statTypes"`
+	DateRange       string   `json:"dateRange"`
+	CustomDateRange struct {
 		Start string `json:"start"`
 		End   string `json:"end"`
 	} `json:"customDateRange"`
-	CellSize              int      `json:"cellSize"`
-	IncludePRs            bool     `json:"includePRs"`
+	CellSize               int      `json:"cellSize"`
+	IncludePRs             bool     `json:"includePRs"`
 	IncludeLocationHeatmap bool     `json:"includeLocationHeatmap"`
-	LocationPrivacyRadius int      `json:"locationPrivacyRadius"`
-	DarkModeSupport       bool     `json:"darkModeSupport"`
-	DarkModeColors        []string `json:"darkModeColors"`
-	WeekStart             string   `json:"weekStart"`
-	Language              string   `json:"language"`
-	TimeZone              string   `json:"timeZone"`
-	Debug                 bool     `json:"debug"`
+	LocationPrivacyRadius  int      `json:"locationPrivacyRadius"`
+	DarkModeSupport        bool     `json:"darkModeSupport"`
+	DarkModeColors         []string `json:"darkModeColors"`
+	WeekStart              string   `json:"weekStart"`
+	Language               string   `json:"language"`
+	TimeZone               string   `json:"timeZone"`
+	Debug                  bool     `json:"debug"`
 }
 
 // LoadConfig loads the configuration from the specified file
@@ -123,3 +123,4 @@ func (c *Config) GetDateRange() (time.Time, time.Time, error) {
 		return time.Time{}, time.Time{}, fmt.Errorf("invalid date range: %s", c.DateRange)
 	}
 }
+

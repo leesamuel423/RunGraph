@@ -42,7 +42,7 @@ func ValidateConfig(config *Config) error {
 		if len(config.CustomColors) != 5 {
 			return fmt.Errorf("customColors must contain exactly 5 colors")
 		}
-		
+
 		for i, color := range config.CustomColors {
 			if !isValidHexColor(color) {
 				return fmt.Errorf("invalid hex color at position %d: %s", i, color)
@@ -82,7 +82,7 @@ func ValidateConfig(config *Config) error {
 		if len(config.DarkModeColors) != 5 {
 			return fmt.Errorf("darkModeColors must contain exactly 5 colors")
 		}
-		
+
 		for i, color := range config.DarkModeColors {
 			if !isValidHexColor(color) {
 				return fmt.Errorf("invalid dark mode hex color at position %d: %s", i, color)
@@ -95,7 +95,7 @@ func ValidateConfig(config *Config) error {
 		if len(config.StatTypes) == 0 {
 			return fmt.Errorf("statTypes cannot be empty when showStats is true")
 		}
-		
+
 		for _, statType := range config.StatTypes {
 			if !contains(ValidStatTypes, statType) {
 				return fmt.Errorf("invalid statType: %s, must be one of %v", statType, ValidStatTypes)
@@ -122,7 +122,7 @@ func isValidHexColor(color string) bool {
 	if !strings.HasPrefix(color, "#") {
 		return false
 	}
-	
+
 	hex := strings.TrimPrefix(color, "#")
 	return (len(hex) == 6 || len(hex) == 3) && isHex(hex)
 }
@@ -136,3 +136,4 @@ func isHex(s string) bool {
 	}
 	return true
 }
+

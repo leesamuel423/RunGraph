@@ -24,11 +24,11 @@ func (a *ActionsHandler) SetOutput(name, value string) error {
 	// or using a specific syntax in stdout
 	// Here we'll just use the ::set-output syntax for simplicity
 	fmt.Printf("::set-output name=%s::%s\n", name, value)
-	
+
 	if a.Debug {
 		fmt.Printf("[DEBUG] Set GitHub Actions output: %s=%s\n", name, value)
 	}
-	
+
 	return nil
 }
 
@@ -36,7 +36,7 @@ func (a *ActionsHandler) SetOutput(name, value string) error {
 func (a *ActionsHandler) LogError(msg string, err error) {
 	// GitHub Actions specific error logging format
 	fmt.Printf("::error::%s: %v\n", msg, err)
-	
+
 	if a.Debug {
 		fmt.Printf("[DEBUG] Logged error: %s: %v\n", msg, err)
 	}
@@ -46,7 +46,7 @@ func (a *ActionsHandler) LogError(msg string, err error) {
 func (a *ActionsHandler) LogWarning(msg string) {
 	// GitHub Actions specific warning logging format
 	fmt.Printf("::warning::%s\n", msg)
-	
+
 	if a.Debug {
 		fmt.Printf("[DEBUG] Logged warning: %s\n", msg)
 	}
@@ -57,7 +57,7 @@ func (a *ActionsHandler) LogInfo(msg string) {
 	// GitHub Actions doesn't have a specific info format,
 	// so we'll just print to stdout
 	fmt.Println(msg)
-	
+
 	if a.Debug {
 		fmt.Printf("[DEBUG] Logged info: %s\n", msg)
 	}
@@ -84,7 +84,7 @@ func (a *ActionsHandler) IsRunningInActions() bool {
 func (a *ActionsHandler) RecordMetric(name string, value interface{}) {
 	// This would be used for GitHub Actions step summary or other metrics
 	fmt.Printf("::notice title=%s::%v\n", name, value)
-	
+
 	if a.Debug {
 		fmt.Printf("[DEBUG] Recorded metric: %s=%v\n", name, value)
 	}
@@ -97,7 +97,7 @@ func (a *ActionsHandler) CreateSummary(content string) error {
 	fmt.Println("\n--- Summary ---")
 	fmt.Println(content)
 	fmt.Println("---------------")
-	
+
 	return nil
 }
 
@@ -105,3 +105,4 @@ func (a *ActionsHandler) CreateSummary(content string) error {
 func (a *ActionsHandler) FormatTimestamp(t time.Time) string {
 	return fmt.Sprintf("%s (UTC)", t.UTC().Format(time.RFC3339))
 }
+

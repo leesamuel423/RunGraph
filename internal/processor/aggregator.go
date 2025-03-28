@@ -52,7 +52,7 @@ func (a *ActivityAggregator) Aggregate() map[string]*strava.DailyActivity {
 		dailyActivity.Types[activity.Type]++
 
 		// Update PR status
-		if activity.PR {
+		if activity.PRCount > 0 {
 			dailyActivity.HasPR = true
 		}
 
