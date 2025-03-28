@@ -107,5 +107,19 @@ The workflow is also scheduled to run daily at midnight UTC to keep your heatmap
 - **Authentication Issues**: If you encounter authentication errors, try regenerating your refresh token.
 - **Missing Activities**: Ensure you've granted the appropriate permissions when authorizing the Strava application.
 - **Workflow Failures**: Check the GitHub Actions logs for detailed error messages.
+- **Permission Errors (403) When Pushing**: If you see "Permission denied" or "Error: 403" when GitHub Actions tries to push changes, modify your workflow file:
+
+  ```yaml
+  - name: Commit and push changes
+    run: |
+      git config --local user.email "github-actions[bot]@users.noreply.github.com"
+      git config --local user.name "GitHub Actions"
+      git add README.md
+      git diff --staged --quiet || git commit -m "Update Strava activity heatmap [skip ci]"
+      git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+      git push
+  ```
+
+  This change sets the remote URL to use the GitHub token for authentication when pushing changes.
 
 If you need further assistance, please open an issue in the repository.
