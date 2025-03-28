@@ -31,15 +31,11 @@ jobs:
           ./strava-heatmap -update
 
       - name: Commit and push changes
-        env:
-          GH_TOKEN: ${{ secrets.PAT }}
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "GitHub Actions"
-          git add README.md
-          if ! git diff --staged --quiet; then
-            git commit -m "Update Strava activity heatmap [skip ci]"
-            gh auth setup-git
-            gh auth status
-            git push origin main
-          fi
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update Strava activity heatmap [skip ci]
+          file_pattern: README.md
+          commit_user_name: GitHub Actions
+          commit_user_email: github-actions[bot]@users.noreply.github.com
+          commit_author: GitHub Actions <github-actions[bot]@users.noreply.github.com>
+          push_options: '--force'
