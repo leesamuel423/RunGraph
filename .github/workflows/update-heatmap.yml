@@ -36,5 +36,5 @@ jobs:
           git config --local user.name "GitHub Actions"
           git add README.md
           git diff --staged --quiet || git commit -m "Update Strava activity heatmap [skip ci]"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}
           git push
