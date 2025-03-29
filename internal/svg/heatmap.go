@@ -3,6 +3,7 @@ package svg
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -254,7 +255,7 @@ func (h *HeatmapData) writeStyle(sb *strings.Builder) {
 	sb.WriteString(`<style>
   .heatmap-cell { rx: 2; }
   .heatmap-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 10px; fill: #ffffff; }
-  .heatmap-month-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #ffffff; }
+  .heatmap-month-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 11px; font-weight: bold; fill: #ffffff; }
   .heatmap-day-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #ffffff; font-weight: bold; }
   .heatmap-legend-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #ffffff; font-weight: bold; }
   .heatmap-tooltip { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; pointer-events: none; filter: drop-shadow(0px 0px 2px rgba(0,0,0,0.2)); opacity: 0; transition: opacity 0.2s; }
@@ -307,73 +308,85 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 	totalWeeks := len(h.Cells)
 	
 	// For our wide layout, we'll place month labels at the appropriate weeks
-	// First, organize weeks by month
-	monthStarts := make(map[int]int) // month -> first week
+	// First, organize weeks by month-year combination
+	monthYearStarts := make(map[string]int) // "month-year" -> first week
 	
+	// Find the first week of each month
 	for week := 0; week < totalWeeks; week++ {
 		if week < len(h.Cells) && len(h.Cells[week]) > 0 {
 			date := h.Cells[week][0].Date
 			month := int(date.Month())
+			year := date.Year()
+			key := fmt.Sprintf("%d-%d", month, year)
 			
-			// If this is the first week we've seen this month
-			if _, exists := monthStarts[month]; !exists {
-				monthStarts[month] = week
+			// If this is the first week we've seen this month-year combination
+			if _, exists := monthYearStarts[key]; !exists {
+				monthYearStarts[key] = week
 			}
 		}
 	}
 	
-	// Month names
+	// Standard 3-letter month abbreviations
 	monthNames := []string{"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 	
 	// Add month labels at the right positions
 	leftPadding := 70 // Same as cell padding
 	
-	// Find the first week in the data set
-	firstWeek := -1
-	for _, week := range monthStarts {
-		if firstWeek == -1 || week < firstWeek {
-			firstWeek = week
-		}
+	// Sort the month-year combinations by week position
+	type monthYearPosition struct {
+		monthYear string
+		week int
 	}
 	
-	for month, week := range monthStarts {
+	var sortedPositions []monthYearPosition
+	for monthYear, week := range monthYearStarts {
+		sortedPositions = append(sortedPositions, monthYearPosition{monthYear, week})
+	}
+	
+	// Sort by week position
+	sort.Slice(sortedPositions, func(i, j int) bool {
+		return sortedPositions[i].week < sortedPositions[j].week
+	})
+	
+	// Spacing for 3-letter abbreviations
+	minSpacingNeeded := 35
+	
+	var lastLabelX int = -minSpacingNeeded * 2 // Start with a value that won't interfere
+	
+	// Skip the first month in the timeline
+	var firstMonthSkipped bool = false
+	
+	for _, pos := range sortedPositions {
+		parts := strings.Split(pos.monthYear, "-")
+		if len(parts) != 2 {
+			continue
+		}
+		
+		month, _ := strconv.Atoi(parts[0])
+		
 		if month <= 0 || month > 12 {
 			continue
 		}
 		
-		// Position label at the start of each month
-		x := (week * (h.CellSize + h.CellSpacing)) + leftPadding
-		y := 20 // Top margin for month labels
-		
-		// Don't skip any month labels, but ensure they don't overlap with adjacent months
-		// Check if this month is represented by enough weeks to display its label
-		// We also want to show the last month (current month) regardless of size
-		isLastMonth := month == int(h.EndDate.Month()) && h.EndDate.Year() == time.Now().Year()
-		
-		// Get the next month's week position (if any) to calculate label spacing
-		minSpacingNeeded := 30 // Minimum pixels needed between month labels
-		hasEnoughSpace := true
-		
-		// Loop through all months to find the next one
-		for nextMonth := month + 1; nextMonth <= 12; nextMonth++ {
-			if nextWeek, exists := monthStarts[nextMonth]; exists {
-				// Calculate spacing between this month and next month
-				thisX := x
-				nextX := (nextWeek * (h.CellSize + h.CellSpacing)) + leftPadding
-				spacing := nextX - thisX
-				
-				if spacing < minSpacingNeeded {
-					hasEnoughSpace = false
-					break
-				}
-			}
+		// Skip the first month that appears in the sequence
+		if !firstMonthSkipped {
+			firstMonthSkipped = true
+			continue
 		}
 		
-		// Always show the current month and months with enough space for labels
-		if isLastMonth || hasEnoughSpace {
-			// Make the font larger and bolder for better visibility
+		// Position label at the start of each month
+		x := (pos.week * (h.CellSize + h.CellSpacing)) + leftPadding
+		y := 20 // Top margin for month labels
+		
+		// Only place label if there's enough space from the last one
+		if x - lastLabelX >= minSpacingNeeded {
+			// Use standard 3-letter abbreviation
+			labelText := monthNames[month]
+			
 			sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-month-label">%s</text>`,
-				x, y, monthNames[month]))
+				x, y, labelText))
+			
+			lastLabelX = x
 		}
 	}
 	

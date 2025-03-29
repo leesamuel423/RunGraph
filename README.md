@@ -15,17 +15,17 @@ StravaGraph integrates your athletic data from Strava with your GitHub profile, 
 
 ## Key Features
 
-| Feature | Description |
-|---------|-------------|
-| **Activity Visualization** | Displays Strava activities in a GitHub-style heatmap with organized days of the week |
-| **Versatile Activity Support** | Compatible with running, cycling, swimming, hiking, and various other Strava activity types |
-| **Metric-Based Intensity** | Configurable color intensity based on duration, distance, elevation, effort, or heart rate zones |
-| **Automated Updates** | Daily refresh via GitHub Actions workflow |
-| **Secure Authentication** | Implements OAuth with Strava API without exposing sensitive tokens |
-| **Customizable Appearance** | Adaptable design to complement your GitHub profile aesthetic |
-| **Dark Mode Support** | Automatic theme switching based on user preferences |
-| **Achievement Highlighting** | Visual indicators for personal records and significant milestones |
-| **Reliable Rendering** | PNG output format ensures consistent display across GitHub README environments |
+| Feature                        | Description                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **Activity Visualization**     | Displays Strava activities in a GitHub-style heatmap with organized days of the week             |
+| **Versatile Activity Support** | Compatible with running, cycling, swimming, hiking, and various other Strava activity types      |
+| **Metric-Based Intensity**     | Configurable color intensity based on duration, distance, elevation, effort, or heart rate zones |
+| **Automated Updates**          | Daily refresh via GitHub Actions workflow                                                        |
+| **Secure Authentication**      | Implements OAuth with Strava API without exposing sensitive tokens                               |
+| **Customizable Appearance**    | Adaptable design to complement your GitHub profile aesthetic                                     |
+| **Dark Mode Support**          | Automatic theme switching based on user preferences                                              |
+| **Achievement Highlighting**   | Visual indicators for personal records and significant milestones                                |
+| **Reliable Rendering**         | PNG output format ensures consistent display across GitHub README environments                   |
 
 ## Implementation
 
@@ -34,24 +34,27 @@ StravaGraph integrates your athletic data from Strava with your GitHub profile, 
 1. **Fork this repository**
 2. **Create a Strava API application** at https://www.strava.com/settings/api
 3. **Configure your credentials** using one of these methods:
-   
+
    **Option A: Using a .env file (recommended for local development):**
+
    ```bash
    # Create a .env file with your credentials
    cp .env.example .env
    # Edit the .env file with your actual values
    ```
-   
+
    To export variables from your .env file to the current shell (useful for some commands):
+
    ```bash
    # Make the script executable if needed
    chmod +x ./export_env.sh
-   
+
    # Export variables to current shell
    source ./export_env.sh
    ```
-   
+
    **Option B: Using environment variables directly:**
+
    ```bash
    export STRAVA_CLIENT_ID=your_client_id
    export STRAVA_CLIENT_SECRET=your_client_secret
@@ -63,17 +66,20 @@ StravaGraph integrates your athletic data from Strava with your GitHub profile, 
    go run ./cmd/strava-heatmap/main.go -auth
    ```
 5. **Configure repository secrets** (Settings > Secrets and variables > Actions):
+
    - `STRAVA_CLIENT_ID`: Your Strava API client ID
    - `STRAVA_CLIENT_SECRET`: Your Strava API client secret
    - `STRAVA_REFRESH_TOKEN`: Your Strava refresh token
    - `PAT`: GitHub Personal Access Token with repository write permissions
-   
+
    > **About the PAT**: This token allows the GitHub Action to update your profile repository. To create one:
+   >
    > 1. Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
    > 2. Click "Generate new token" → "Generate new token (classic)"
    > 3. Name it something like "StravaGraph Access" and set expiration as desired
    > 4. Select the `repo` scope to allow repository modifications
    > 5. Click "Generate token" and copy the token value immediately
+
 6. **Add the marker comments to your GitHub profile README**:
 
    ```markdown
@@ -97,12 +103,12 @@ go build -o strava-heatmap ./cmd/strava-heatmap
 
 ### Command Reference
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `-auth` | Display authentication instructions | `./strava-heatmap -auth` |
-| `-update` | Update README with generated heatmap | `./strava-heatmap -update` |
-| `-generate` | Create SVG without modifying README | `./strava-heatmap -generate > heatmap.svg` |
-| `-test` | Validate configuration and authentication | `./strava-heatmap -test` |
+| Command     | Description                               | Example                                    |
+| ----------- | ----------------------------------------- | ------------------------------------------ |
+| `-auth`     | Display authentication instructions       | `./strava-heatmap -auth`                   |
+| `-update`   | Update README with generated heatmap      | `./strava-heatmap -update`                 |
+| `-generate` | Create SVG without modifying README       | `./strava-heatmap -generate > heatmap.svg` |
+| `-test`     | Validate configuration and authentication | `./strava-heatmap -test`                   |
 
 ### Configuration Options
 
@@ -110,16 +116,16 @@ Customize your visualization by editing the `config.json` file:
 
 ```json
 {
-  "activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
-  "metricType": "distance",
-  "colorScheme": "strava",
-  "showStats": false,
-  "dateRange": "1year",
-  "cellSize": 10,
-  "includePRs": true,
-  "darkModeSupport": true,
-  "weekStart": "Monday",
-  "timeZone": "UTC"
+	"activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
+	"metricType": "distance",
+	"colorScheme": "strava",
+	"showStats": false,
+	"dateRange": "1year",
+	"cellSize": 10,
+	"includePRs": true,
+	"darkModeSupport": true,
+	"weekStart": "Monday",
+	"timeZone": "UTC"
 }
 ```
 
@@ -237,4 +243,7 @@ MIT
 ## My Strava Activity
 
 <!-- STRAVA-HEATMAP-START -->
+
+![Strava Heatmap](./strava-output.svg)
+
 <!-- STRAVA-HEATMAP-END -->
