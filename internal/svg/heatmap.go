@@ -201,7 +201,9 @@ func (h *HeatmapData) generateLabels() {
 
 // RenderSVG generates the SVG for the heatmap
 func (h *HeatmapData) RenderSVG() string {
-	totalWidth := (7 * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
+	// Make the heatmap wider by displaying 16 days per row instead of 7
+	// This makes it more similar to GitHub's contribution graph horizontal layout
+	totalWidth := (16 * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
 	totalHeight := (len(h.Cells) * (h.CellSize + h.CellSpacing)) + 30 // +30 for month labels
 
 	var sb strings.Builder
@@ -281,8 +283,16 @@ func (h *HeatmapData) writeStyle(sb *strings.Builder) {
 func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 	sb.WriteString(`<g class="heatmap-month-labels">`)
 	
+	// For each month, calculate new position with more spread-out layout
 	for _, label := range h.MonthLabels {
-		x := (label.X * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
+		// Calculate the day number within the year (approximate)
+		dayNum := label.X * 7 // Original layout: each X was a week (7 days)
+		
+		// Calculate position in new layout
+		newRow := dayNum / 16 // 16 cells per row in new layout
+		newCol := dayNum % 16
+		
+		x := (newCol * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
 		y := 10 // Top margin for month labels
 		
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-label">%s</text>`,
@@ -296,13 +306,44 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 func (h *HeatmapData) writeWeekLabels(sb *strings.Builder) {
 	sb.WriteString(`<g class="heatmap-week-labels">`)
 	
-	for i, label := range h.WeekLabels {
-		if label == "" {
+	// Calculate total days to display
+	totalDays := len(h.Cells) * 7
+	
+	// Number of rows in new layout
+	totalRows := (totalDays + 15) / 16 // ceiling division
+	
+	// Add fewer week labels to match GitHub style - showing only every ~6 weeks
+	for row := 0; row < totalRows; row += 6 {
+		// Convert row back to original week number
+		weekIndex := (row * 16) / 7
+		
+		// Stay within array bounds
+		if weekIndex >= len(h.WeekLabels) {
 			continue
 		}
 		
+		// Get the label for this week, or attempt to find a nearby non-empty label
+		label := h.WeekLabels[weekIndex]
+		if label == "" {
+			// Try finding a non-empty label nearby
+			for offset := 1; offset < 4; offset++ {
+				if weekIndex+offset < len(h.WeekLabels) && h.WeekLabels[weekIndex+offset] != "" {
+					label = h.WeekLabels[weekIndex+offset]
+					break
+				}
+				if weekIndex-offset >= 0 && h.WeekLabels[weekIndex-offset] != "" {
+					label = h.WeekLabels[weekIndex-offset]
+					break
+				}
+			}
+			
+			if label == "" {
+				continue
+			}
+		}
+		
 		x := 15 // Left margin for week labels
-		y := (i * (h.CellSize + h.CellSpacing)) + (h.CellSize / 2) + 20 // +20 for month labels
+		y := (row * (h.CellSize + h.CellSpacing)) + (h.CellSize / 2) + 20 // +20 for month labels
 		
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" dy="0.32em" text-anchor="end" class="heatmap-label">%s</text>`,
 			x, y, label))
@@ -315,17 +356,34 @@ func (h *HeatmapData) writeWeekLabels(sb *strings.Builder) {
 func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 	sb.WriteString(`<g class="heatmap-cells">`)
 	
-	for week := 0; week < len(h.Cells); week++ {
-		for day := 0; day < 7; day++ {
-			cell := h.Cells[week][day]
-			
-			// Skip days outside our date range
-			if cell.Date.Before(h.StartDate) || cell.Date.After(h.EndDate) {
-				continue
-			}
-			
-			x := (day * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
-			y := (week * (h.CellSize + h.CellSpacing)) + 20 // +20 for month labels
+	// Calculate total days to display
+	totalDays := len(h.Cells) * 7
+	
+	// To display the cells in a more GitHub-like grid (more horizontal)
+	// we'll stretch the grid horizontally
+	for i := 0; i < totalDays; i++ {
+		// Determine which cell from the original grid to use
+		week := i / 7
+		day := i % 7
+		
+		// Skip if outside the array bounds
+		if week >= len(h.Cells) || day >= 7 {
+			continue
+		}
+		
+		cell := h.Cells[week][day]
+		
+		// Skip days outside our date range
+		if cell.Date.Before(h.StartDate) || cell.Date.After(h.EndDate) {
+			continue
+		}
+		
+		// Calculate x,y position for a more stretched layout (16 cells per row)
+		newRow := i / 16
+		newCol := i % 16
+		
+		x := (newCol * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
+		y := (newRow * (h.CellSize + h.CellSpacing)) + 20 // +20 for month labels
 			
 			// Determine fill color based on intensity
 			colorClass := fmt.Sprintf("intensity-%d", cell.Intensity)

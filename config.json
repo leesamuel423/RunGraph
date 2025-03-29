@@ -3,14 +3,14 @@
   "metricType": "distance",
   "colorScheme": "github",
   "customColors": ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
-  "showStats": true,
+  "showStats": false,
   "statTypes": ["weekly", "monthly", "yearly"],
   "dateRange": "1year",
   "customDateRange": {
     "start": "2023-01-01",
     "end": "2023-12-31"
   },
-  "cellSize": 11,
+  "cellSize": 10,
   "includePRs": true,
   "includeLocationHeatmap": false,
   "locationPrivacyRadius": 500,
