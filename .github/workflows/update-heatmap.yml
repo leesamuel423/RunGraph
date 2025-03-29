@@ -28,8 +28,24 @@ jobs:
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
         run: |
-          # Save SVG output to a file
-          ./strava-heatmap -generate > strava-heatmap.svg
+          # Enable debug mode
+          cp config.json config.json.backup
+          sed -i 's/"debug": false/"debug": true/g' config.json
+          cat config.json
+          
+          # Run test command to verify credentials
+          ./strava-heatmap -test
+          
+          # Try to generate SVG with error output
+          ./strava-heatmap -generate > strava-heatmap.svg 2>generate_error.log || { 
+            echo "Error generating SVG file:"
+            cat generate_error.log
+            exit 1
+          }
+          
+          # Restore original config
+          mv config.json.backup config.json
+          
           echo "Generated SVG file:"
           ls -la strava-heatmap.svg
       
