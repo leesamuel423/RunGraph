@@ -40,10 +40,16 @@ jobs:
           path: profile
           token: ${{ secrets.PAT }}
       
-      - name: Update README in profile repository
+      - name: Install necessary packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin imagemagick
+
+      - name: Convert SVG to PNG
         run: |
           # Use the generated SVG file
           SVG_FILE="strava-heatmap.svg"
+          PNG_FILE="strava-heatmap.png"
           
           if [ ! -f "$SVG_FILE" ]; then
             echo "ERROR: SVG file not found at $SVG_FILE"
@@ -51,6 +57,29 @@ jobs:
           fi
           
           echo "Using SVG file: $SVG_FILE"
+          
+          # Ensure the SVG content has proper XML tags
+          if ! grep -q "<svg" "$SVG_FILE"; then
+            echo "ERROR: File does not appear to contain valid SVG content"
+            head -n 20 "$SVG_FILE"
+            exit 1
+          fi
+          
+          # Convert SVG to PNG
+          rsvg-convert -o "$PNG_FILE" "$SVG_FILE"
+          
+          if [ ! -f "$PNG_FILE" ]; then
+            echo "ERROR: PNG file was not created"
+            exit 1
+          fi
+          
+          echo "Successfully created PNG file:"
+          ls -la "$PNG_FILE"
+
+      - name: Update README in profile repository
+        run: |
+          # Use the generated PNG file
+          PNG_FILE="strava-heatmap.png"
           
           # Check if the profile README has the markers
           if ! grep -q "<!-- STRAVA-HEATMAP-START -->" profile/README.md || ! grep -q "<!-- STRAVA-HEATMAP-END -->" profile/README.md; then
@@ -61,23 +90,17 @@ jobs:
             exit 1
           fi
           
-          # Read and process the SVG content
-          SVG_CONTENT=$(cat $SVG_FILE)
-          
-          # Ensure the SVG content has proper XML tags
-          if ! grep -q "<svg" "$SVG_FILE"; then
-            echo "ERROR: File does not appear to contain valid SVG content"
-            head -n 20 "$SVG_FILE"
-            exit 1
-          fi
+          # Copy PNG file to profile repo assets directory
+          mkdir -p profile/assets
+          cp "$PNG_FILE" profile/assets/
           
           # Create a temporary file
           TEMP_FILE=$(mktemp)
           
-          # Process the README file in three parts: before markers, SVG content, after markers
+          # Process the README file in three parts: before markers, image tag, after markers
           awk 'BEGIN{p=1}/<!-- STRAVA-HEATMAP-START -->/{print;p=0}p' profile/README.md > $TEMP_FILE
           echo "" >> $TEMP_FILE
-          echo "$SVG_CONTENT" >> $TEMP_FILE
+          echo "![Strava Activity Heatmap](./assets/strava-heatmap.png)" >> $TEMP_FILE
           echo "" >> $TEMP_FILE
           awk 'BEGIN{p=0}/<!-- STRAVA-HEATMAP-END -->/{p=1}p' profile/README.md >> $TEMP_FILE
           
@@ -88,6 +111,6 @@ jobs:
           cd profile
           git config user.name "GitHub Actions"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
+          git add README.md assets/strava-heatmap.png
           git commit -m "Update Strava activity heatmap [skip ci]"
           git push
