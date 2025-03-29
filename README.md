@@ -12,6 +12,7 @@ A GitHub profile enhancement that displays your Strava activity as a contributio
 StravaGraph integrates your athletic data from Strava with your GitHub profile, generating a contribution-style heatmap that visualizes your workout frequency and intensity. The visualization mirrors GitHub's own contribution graph aesthetics while representing your physical activities. Color intensity variations reflect your chosen activity metrics, providing profile visitors with an elegant representation of your athletic consistency and commitment.
 
 ![Example Strava Heatmap](./assets/heatmap_example1.png)
+![Example Strava Heatmap](./assets/heatmap_example2.png)
 
 ## Key Features
 
@@ -243,7 +244,5 @@ MIT
 ## My Strava Activity
 
 <!-- STRAVA-HEATMAP-START -->
-
-![Strava Heatmap](./strava-output.svg)
 
 <!-- STRAVA-HEATMAP-END -->
