@@ -64,6 +64,26 @@ This guide will walk you through the process of setting up the Strava-GitHub Hea
    <!-- STRAVA-HEATMAP-END -->
    ```
 
+3. Update your workflow file to target your profile repository:
+   - In the workflow file, replace the repository name in the checkout step:
+   ```yaml
+   - name: Generate Heatmap SVG
+     env:
+       STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+       STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+       STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+     run: |
+       # Save SVG output to a file
+       ./strava-heatmap -generate > strava-heatmap.svg
+   
+   - name: Checkout profile repository
+     uses: actions/checkout@v3
+     with:
+       repository: yourusername/yourusername  # Your profile repo
+       path: profile
+       token: ${{ secrets.PAT }}
+   ```
+
 ## Step 6: Customize Your Heatmap (Optional)
 
 Edit the `config.json` file in your forked repository to customize the appearance and behavior of your heatmap:
@@ -107,32 +127,37 @@ The workflow is also scheduled to run daily at midnight UTC to keep your heatmap
 - **Authentication Issues**: If you encounter authentication errors, try regenerating your refresh token.
 - **Missing Activities**: Ensure you've granted the appropriate permissions when authorizing the Strava application.
 - **Workflow Failures**: Check the GitHub Actions logs for detailed error messages.
-- **Permission Errors (403) When Pushing**: If you see "Permission denied" or "Error: 403" when GitHub Actions tries to push changes:
+- **Permission Errors (403) When Pushing to Profile Repository**: If you're trying to update your profile README from another repository:
 
-  1. Create a Personal Access Token (PAT):
+  1. Create a Personal Access Token (PAT) with sufficient permissions:
      - Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
      - Generate a new token with "repo" scope
      - Copy the generated token
   
   2. Add this token as a repository secret named `PAT`
   
-  3. Modify your workflow file to use this token:
+  3. Use a workflow that checks out your profile repository separately:
 
   ```yaml
-  - name: Commit and push changes
-    env:
-      PAT: ${{ secrets.PAT }}
+  - name: Checkout profile repository
+    uses: actions/checkout@v3
+    with:
+      repository: yourusername/yourusername  # Your profile repo
+      path: profile
+      token: ${{ secrets.PAT }}
+  
+  - name: Update README in profile repository
     run: |
-      git config --local user.email "github-actions[bot]@users.noreply.github.com"
-      git config --local user.name "GitHub Actions"
+      # Copy your generated content to the profile README
+      # Replace the markers in the profile README
+      cd profile
+      git config user.name "GitHub Actions"
+      git config user.email "github-actions[bot]@users.noreply.github.com"
       git add README.md
-      git diff --staged --quiet || git commit -m "Update Strava activity heatmap [skip ci]"
-      git remote set-url origin https://${PAT}@github.com/yourusername/yourrepo.git
+      git commit -m "Update Strava activity heatmap [skip ci]"
       git push
   ```
   
-  Make sure to replace `yourusername/yourrepo.git` with your actual GitHub username and repository name.
-
-  This change sets the remote URL to use your Personal Access Token for authentication when pushing changes.
+  This approach correctly separates the tool repository from your profile repository and uses your PAT to authenticate when pushing to your profile.
 
 If you need further assistance, please open an issue in the repository.

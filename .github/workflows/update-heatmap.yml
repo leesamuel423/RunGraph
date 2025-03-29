@@ -28,8 +28,10 @@ jobs:
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
         run: |
-          ./strava-heatmap -generate
-          ls -la
+          # Save SVG output to a file
+          ./strava-heatmap -generate > strava-heatmap.svg
+          echo "Generated SVG file:"
+          ls -la strava-heatmap.svg
       
       - name: Checkout profile repository
         uses: actions/checkout@v3
@@ -40,23 +42,15 @@ jobs:
       
       - name: Update README in profile repository
         run: |
-          # Generate the SVG file
-          ls -la
+          # Use the generated SVG file
+          SVG_FILE="strava-heatmap.svg"
           
-          # Extract SVG file path from the logs
-          SVG_FILE=$(ls -t *.svg 2>/dev/null | head -1 || echo "")
-          
-          if [ -z "$SVG_FILE" ]; then
-            echo "No SVG file found, checking if -generate created it in a different location"
-            SVG_FILE=$(find . -name "*.svg" | head -1 || echo "")
-            
-            if [ -z "$SVG_FILE" ]; then
-              echo "ERROR: No SVG file generated. Check the logs."
-              exit 1
-            fi
+          if [ ! -f "$SVG_FILE" ]; then
+            echo "ERROR: SVG file not found at $SVG_FILE"
+            exit 1
           fi
           
-          echo "Found SVG file: $SVG_FILE"
+          echo "Using SVG file: $SVG_FILE"
           
           # Check if the profile README has the markers
           if ! grep -q "<!-- STRAVA-HEATMAP-START -->" profile/README.md || ! grep -q "<!-- STRAVA-HEATMAP-END -->" profile/README.md; then
