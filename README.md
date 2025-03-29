@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/samuellee/StravaGraph)](https://goreportcard.com/report/github.com/samuellee/StravaGraph)
 [![Last Release](https://img.shields.io/github/v/release/samuellee/StravaGraph)](https://github.com/samuellee/StravaGraph/releases)
 
-A professional GitHub profile enhancement that displays your Strava activity as a contribution-style heatmap directly in your GitHub profile README.
+A GitHub profile enhancement that displays your Strava activity as a contribution-style heatmap directly in your GitHub profile README.
 
 ## Overview
 
@@ -65,7 +65,7 @@ StravaGraph integrates your athletic data from Strava with your GitHub profile, 
 5. **Configure repository secrets** (Settings > Secrets and variables > Actions):
    - `STRAVA_CLIENT_ID`: Your Strava API client ID
    - `STRAVA_CLIENT_SECRET`: Your Strava API client secret
-   - `STRAVA_REFRESH_TOKEN`: Your Strava refresh token (put it in quotes)
+   - `STRAVA_REFRESH_TOKEN`: Your Strava refresh token
    - `PAT`: GitHub Personal Access Token with repository write permissions
    
    > **About the PAT**: This token allows the GitHub Action to update your profile repository. To create one:

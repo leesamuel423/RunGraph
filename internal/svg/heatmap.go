@@ -345,9 +345,32 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 		x := (week * (h.CellSize + h.CellSpacing)) + leftPadding
 		y := 20 // Top margin for month labels
 		
-		// Skip the first month label to prevent overlap with the second month
-		// Note: The first month may be March or any other month depending on the data range
-		if week != firstWeek {
+		// Don't skip any month labels, but ensure they don't overlap with adjacent months
+		// Check if this month is represented by enough weeks to display its label
+		// We also want to show the last month (current month) regardless of size
+		isLastMonth := month == int(h.EndDate.Month()) && h.EndDate.Year() == time.Now().Year()
+		
+		// Get the next month's week position (if any) to calculate label spacing
+		minSpacingNeeded := 30 // Minimum pixels needed between month labels
+		hasEnoughSpace := true
+		
+		// Loop through all months to find the next one
+		for nextMonth := month + 1; nextMonth <= 12; nextMonth++ {
+			if nextWeek, exists := monthStarts[nextMonth]; exists {
+				// Calculate spacing between this month and next month
+				thisX := x
+				nextX := (nextWeek * (h.CellSize + h.CellSpacing)) + leftPadding
+				spacing := nextX - thisX
+				
+				if spacing < minSpacingNeeded {
+					hasEnoughSpace = false
+					break
+				}
+			}
+		}
+		
+		// Always show the current month and months with enough space for labels
+		if isLastMonth || hasEnoughSpace {
 			// Make the font larger and bolder for better visibility
 			sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-month-label">%s</text>`,
 				x, y, monthNames[month]))
