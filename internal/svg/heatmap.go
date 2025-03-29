@@ -253,10 +253,10 @@ func (h *HeatmapData) RenderSVG() string {
 func (h *HeatmapData) writeStyle(sb *strings.Builder) {
 	sb.WriteString(`<style>
   .heatmap-cell { rx: 2; }
-  .heatmap-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 10px; fill: #767676; }
-  .heatmap-month-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #24292e; }
-  .heatmap-day-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #24292e; font-weight: bold; }
-  .heatmap-legend-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #24292e; font-weight: bold; }
+  .heatmap-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 10px; fill: #ffffff; }
+  .heatmap-month-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #ffffff; }
+  .heatmap-day-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #ffffff; font-weight: bold; }
+  .heatmap-legend-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #ffffff; font-weight: bold; }
   .heatmap-tooltip { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; pointer-events: none; filter: drop-shadow(0px 0px 2px rgba(0,0,0,0.2)); opacity: 0; transition: opacity 0.2s; }
   .heatmap-cell:hover + .heatmap-tooltip { opacity: 1; }
   .heatmap-tooltip-rect { fill: white; stroke: #ddd; rx: 3; }
@@ -336,9 +336,12 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 		x := (week * (h.CellSize + h.CellSpacing)) + leftPadding
 		y := 20 // Top margin for month labels
 		
-		// Make the font larger and bolder for better visibility
-		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-month-label">%s</text>`,
-			x, y, monthNames[month]))
+		// Skip the first month label to prevent overlap
+		if week > 0 {
+			// Make the font larger and bolder for better visibility
+			sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-month-label">%s</text>`,
+				x, y, monthNames[month]))
+		}
 	}
 	
 	sb.WriteString(`</g>`)
@@ -473,8 +476,8 @@ func (h *HeatmapData) writeLegend(sb *strings.Builder, totalWidth int) {
 	sb.WriteString(fmt.Sprintf(`<g class="heatmap-legend" transform="translate(%d, %d)">`, 
 		centerX, legendY))
 	
-	// Legend label
-	sb.WriteString(`<text x="0" y="5" class="heatmap-legend-text" text-anchor="start">Less</text>`)
+	// Legend label - Vertically center with boxes
+	sb.WriteString(`<text x="0" y="11" class="heatmap-legend-text" text-anchor="start">Less</text>`)
 	
 	// Legend boxes - increase size for better visibility
 	boxSize := h.CellSize + 4 // Make boxes slightly larger
@@ -487,8 +490,8 @@ func (h *HeatmapData) writeLegend(sb *strings.Builder, totalWidth int) {
 			x, boxSize, boxSize, colorClass))
 	}
 	
-	// More label
-	sb.WriteString(fmt.Sprintf(`<text x="%d" y="5" class="heatmap-legend-text" text-anchor="start">More</text>`,
+	// More label - Vertically center with boxes
+	sb.WriteString(fmt.Sprintf(`<text x="%d" y="11" class="heatmap-legend-text" text-anchor="start">More</text>`,
 		40 + (5 * (boxSize + 4)) + 5))
 	
 	sb.WriteString(`</g>`)
