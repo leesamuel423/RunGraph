@@ -1,13 +1,25 @@
 {
-  "activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
+  "activityTypes": [
+    "Run",
+    "Ride",
+    "Swim",
+    "Hike",
+    "WeightTraining"
+  ],
   "metricType": "distance",
-  "colorScheme": "strava",
+  "colorScheme": "blue",
   "showStats": false,
   "dateRange": "1year",
   "cellSize": 10,
   "includePRs": true,
   "darkModeSupport": true,
-  "darkModeColors": ["#36363c", "#7c2c2a", "#a63b33", "#d64c3b", "#fc7566"],
+  "darkModeColors": [
+    "#36363c",
+    "#7c2c2a",
+    "#a63b33",
+    "#d64c3b",
+    "#fc7566"
+  ],
   "weekStart": "Monday",
   "timeZone": "UTC",
   "debug": false

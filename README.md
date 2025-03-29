@@ -129,26 +129,45 @@ For a complete configuration reference with all available options, see [examples
 
 - [Installation Guide](./INSTALL.md) - Detailed setup and configuration instructions
 - [API Documentation](./API.md) - Technical API reference
-- [Example Profile](./examples/profile/README.md) - Sample GitHub profile README implementation
 
-## Recent Enhancements
+## Customizing Colors
 
-### Visual Improvements
-- Redesigned heatmap layout with 7-day weekly grid structure
-- Implemented clear day-of-week labeling system
-- Enhanced month label positioning to prevent visual overlaps
-- Optimized text colors for improved readability
-- Vertically aligned legend elements for professional presentation
-- Refined minimalist design emphasizing data clarity
-- Integrated Strava's signature orange color palette for brand consistency
+You can customize the colors of your heatmap to match your preferred style by updating the `colorScheme` and `customColors` options in your `config.json` file:
 
-### Technical Advancements
-- Transitioned to PNG rendering for consistent GitHub README display
-- Implemented SVG to PNG conversion in CI/CD workflow
-- Optimized tooltip positioning within viewport boundaries
-- Enhanced spacing algorithms for improved visual balance
-- Implemented responsive dark mode support with consistent styling
-- Streamlined visualization by focusing on core heatmap functionality
+### Built-in Color Schemes
+
+Choose from several pre-defined color schemes by setting the `colorScheme` field:
+
+```json
+"colorScheme": "github" // Options: "github", "strava", "blue", "purple"
+```
+
+- **github**: GitHub's classic green gradient (`#ebedf0`, `#9be9a8`, `#40c463`, `#30a14e`, `#216e39`)
+- **strava**: Strava's orange/red palette (`#494950`, `#ffd4d1`, `#ffad9f`, `#fc7566`, `#e34a33`)
+- **blue**: Blue gradient (`#ebedf0`, `#c0dbf1`, `#7ab3e5`, `#3282ce`, `#0a60b6`)
+- **purple**: Purple gradient (`#ebedf0`, `#d9c6ec`, `#b888e0`, `#9c4acf`, `#7222bc`)
+
+### Custom Color Palette
+
+For full control, use the "custom" color scheme and define your own colors:
+
+```json
+"colorScheme": "custom",
+"customColors": ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"]
+```
+
+The `customColors` array contains 5 hex color codes, representing intensity levels from lowest to highest.
+
+### Dark Mode Colors
+
+You can also customize how your heatmap appears in dark mode:
+
+```json
+"darkModeSupport": true,
+"darkModeColors": ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"]
+```
+
+Set `darkModeSupport` to `false` if you prefer to disable dark mode support.
 
 ## Architecture
 
@@ -188,7 +207,6 @@ For a complete configuration reference with all available options, see [examples
 │   ├── icons/                      # Activity icons
 │   └── templates/                  # SVG templates
 ├── examples/                       # Usage examples
-│   ├── profile/                    # Example profile README
 │   └── config.customized.json      # Comprehensive config example
 ├── config.json                     # Configuration file
 ├── export_env.sh                   # Environment variable helper
