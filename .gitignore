@@ -32,6 +32,7 @@ go.work
 .vscode/
 *.sublime-workspace
 *.sublime-project
+CLAUDE.md
 
 # Debug files
 debug

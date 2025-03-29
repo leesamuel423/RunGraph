@@ -61,15 +61,25 @@ jobs:
             exit 1
           fi
           
+          # Read and process the SVG content
+          SVG_CONTENT=$(cat $SVG_FILE)
+          
+          # Ensure the SVG content has proper XML tags
+          if ! grep -q "<svg" "$SVG_FILE"; then
+            echo "ERROR: File does not appear to contain valid SVG content"
+            head -n 20 "$SVG_FILE"
+            exit 1
+          fi
+          
           # Create a temporary file
           TEMP_FILE=$(mktemp)
           
           # Process the README file in three parts: before markers, SVG content, after markers
-          sed -n '1,/<!-- STRAVA-HEATMAP-START -->/p' profile/README.md > $TEMP_FILE
-          echo -e "\n" >> $TEMP_FILE
-          cat $SVG_FILE >> $TEMP_FILE
-          echo -e "\n" >> $TEMP_FILE
-          sed -n '/<!-- STRAVA-HEATMAP-END -->/,$p' profile/README.md >> $TEMP_FILE
+          awk 'BEGIN{p=1}/<!-- STRAVA-HEATMAP-START -->/{print;p=0}p' profile/README.md > $TEMP_FILE
+          echo "" >> $TEMP_FILE
+          echo "$SVG_CONTENT" >> $TEMP_FILE
+          echo "" >> $TEMP_FILE
+          awk 'BEGIN{p=0}/<!-- STRAVA-HEATMAP-END -->/{p=1}p' profile/README.md >> $TEMP_FILE
           
           # Replace the original README with our modified version
           cp $TEMP_FILE profile/README.md
