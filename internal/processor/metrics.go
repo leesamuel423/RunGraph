@@ -147,37 +147,37 @@ func formatPeriodKey(year, period int) string {
 // CalculateEffortScore calculates an overall effort score
 func (m *MetricsCalculator) CalculateEffortScore() float64 {
 	stats := m.CalculateOverallStats()
-	
+
 	// Simple formula based on total distance, elevation, and duration
 	// Normalized to produce a 0-100 score for typical activity levels
-	
+
 	// Base score from distance (km)
 	distanceScore := math.Min(stats.TotalDistance/10, 100)
-	
+
 	// Elevation bonus (m)
 	elevationBonus := math.Min(stats.TotalElevation/100, 50)
-	
+
 	// Duration factor (hours)
 	durationFactor := math.Min(float64(stats.TotalDuration)/5, 100)
-	
+
 	// Frequency bonus from active days percentage
 	totalDays := m.EndDate.Sub(m.StartDate).Hours() / 24
 	frequencyBonus := 0.0
 	if totalDays > 0 {
 		frequencyBonus = math.Min(float64(stats.ActiveDays)/totalDays*50, 50)
 	}
-	
+
 	// Streak bonus
 	streakBonus := math.Min(float64(stats.LongestStreak), 30)
-	
+
 	// PR bonus
 	prBonus := math.Min(float64(stats.PRCount)*2, 20)
-	
+
 	// Calculate total score and normalize to 0-100
-	rawScore := distanceScore + elevationBonus + (durationFactor * 0.5) + 
+	rawScore := distanceScore + elevationBonus + (durationFactor * 0.5) +
 		frequencyBonus + (streakBonus * 0.5) + prBonus
-	
+
 	normalizedScore := math.Min(rawScore/3, 100)
-	
+
 	return math.Round(normalizedScore*10) / 10 // Round to 1 decimal place
 }

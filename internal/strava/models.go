@@ -84,4 +84,3 @@ type DatePeriodStats struct {
 	TotalElevation float64
 	ActivityCount  int
 }
-

@@ -123,4 +123,3 @@ func (c *Config) GetDateRange() (time.Time, time.Time, error) {
 		return time.Time{}, time.Time{}, fmt.Errorf("invalid date range: %s", c.DateRange)
 	}
 }
-

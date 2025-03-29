@@ -105,4 +105,3 @@ func (a *ActionsHandler) CreateSummary(content string) error {
 func (a *ActionsHandler) FormatTimestamp(t time.Time) string {
 	return fmt.Sprintf("%s (UTC)", t.UTC().Format(time.RFC3339))
 }
-

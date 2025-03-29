@@ -68,9 +68,9 @@ func (g *Generator) GenerateHeatmap(activities []strava.SummaryActivity) (string
 	if g.Config.ShowStats {
 		statsGenerator := processor.NewStatsGenerator(orderedDailyData, startDate, endDate, g.Config.MetricType)
 		stats := statsGenerator.GenerateStats()
-		
+
 		statsSVG := g.generateStatsSVG(stats)
-		
+
 		// Combine heatmap and stats
 		svgContent = g.combineHeatmapAndStats(svgContent, statsSVG)
 	}
@@ -80,7 +80,7 @@ func (g *Generator) GenerateHeatmap(activities []strava.SummaryActivity) (string
 		if g.Debug {
 			fmt.Fprintf(os.Stderr, "[DEBUG] Generated SVG does not start with <svg> tag!\n")
 		}
-		
+
 		// Try to fix by extracting just the SVG content
 		svgIndex := strings.Index(svgContent, "<svg")
 		if svgIndex != -1 {
@@ -106,14 +106,14 @@ func (g *Generator) generateStatsSVG(stats map[string]interface{}) string {
 
 	// Extract some key stats
 	overall, _ := stats["overall"].(*strava.ActivityStats)
-	
+
 	// Create a simple stats panel
 	width := 300
 	height := 200
-	
+
 	sb.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		width, height, width, height))
-	
+
 	// Add style
 	sb.WriteString(`<style>
   .stats-panel { fill: #f6f8fa; stroke: #e1e4e8; rx: 6; }
@@ -121,7 +121,7 @@ func (g *Generator) generateStatsSVG(stats map[string]interface{}) string {
   .stats-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #586069; }
   .stats-value { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #24292e; }
   .stats-unit { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #586069; }`)
-	
+
 	// Add dark mode support if enabled
 	if g.Config.DarkModeSupport {
 		sb.WriteString(`
@@ -133,48 +133,48 @@ func (g *Generator) generateStatsSVG(stats map[string]interface{}) string {
     .stats-unit { fill: #8b949e; }
   }`)
 	}
-	
+
 	sb.WriteString(`
 </style>`)
-	
+
 	// Stats panel background
 	sb.WriteString(fmt.Sprintf(`<rect x="0" y="0" width="%d" height="%d" class="stats-panel" />`, width, height))
-	
+
 	// Title
 	sb.WriteString(`<text x="15" y="30" class="stats-title">Activity Summary</text>`)
-	
+
 	// Stats grid
 	if overall != nil {
 		// Total activities
 		sb.WriteString(`<text x="15" y="60" class="stats-label">Total Activities</text>`)
 		sb.WriteString(fmt.Sprintf(`<text x="150" y="60" class="stats-value">%d</text>`, overall.TotalActivities))
-		
+
 		// Total distance
 		sb.WriteString(`<text x="15" y="85" class="stats-label">Total Distance</text>`)
 		sb.WriteString(fmt.Sprintf(`<text x="150" y="85" class="stats-value">%.1f</text>`, overall.TotalDistance))
 		sb.WriteString(`<text x="185" y="85" class="stats-unit">km</text>`)
-		
+
 		// Total duration
 		sb.WriteString(`<text x="15" y="110" class="stats-label">Total Duration</text>`)
 		sb.WriteString(fmt.Sprintf(`<text x="150" y="110" class="stats-value">%d</text>`, overall.TotalDuration))
 		sb.WriteString(`<text x="170" y="110" class="stats-unit">hours</text>`)
-		
+
 		// Active days
 		sb.WriteString(`<text x="15" y="135" class="stats-label">Active Days</text>`)
 		sb.WriteString(fmt.Sprintf(`<text x="150" y="135" class="stats-value">%d</text>`, overall.ActiveDays))
-		
+
 		// Longest streak
 		sb.WriteString(`<text x="15" y="160" class="stats-label">Longest Streak</text>`)
 		sb.WriteString(fmt.Sprintf(`<text x="150" y="160" class="stats-value">%d</text>`, overall.LongestStreak))
 		sb.WriteString(`<text x="170" y="160" class="stats-unit">days</text>`)
-		
+
 		// Personal records
 		sb.WriteString(`<text x="15" y="185" class="stats-label">Personal Records</text>`)
 		sb.WriteString(fmt.Sprintf(`<text x="150" y="185" class="stats-value">%d</text>`, overall.PRCount))
 	}
-	
+
 	sb.WriteString(`</svg>`)
-	
+
 	return sb.String()
 }
 
@@ -182,30 +182,30 @@ func (g *Generator) generateStatsSVG(stats map[string]interface{}) string {
 func (g *Generator) combineHeatmapAndStats(heatmapSVG, statsSVG string) string {
 	// Extract width and height from heatmap
 	heatmapWidth, heatmapHeight := extractSVGDimensions(heatmapSVG)
-	
+
 	// Extract width and height from stats
 	statsWidth, statsHeight := extractSVGDimensions(statsSVG)
-	
+
 	// Calculate combined dimensions
 	totalWidth := heatmapWidth + statsWidth + 10 // Add 10px margin between
 	totalHeight := max(heatmapHeight, statsHeight)
-	
+
 	// Create combined SVG
 	var sb strings.Builder
-	
+
 	sb.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		totalWidth, totalHeight, totalWidth, totalHeight))
-	
+
 	// Extract and include heatmap content
 	heatmapContent := extractSVGContent(heatmapSVG)
 	sb.WriteString(fmt.Sprintf(`<g transform="translate(0, 0)">%s</g>`, heatmapContent))
-	
+
 	// Extract and include stats content
 	statsContent := extractSVGContent(statsSVG)
 	sb.WriteString(fmt.Sprintf(`<g transform="translate(%d, 0)">%s</g>`, heatmapWidth+10, statsContent))
-	
+
 	sb.WriteString(`</svg>`)
-	
+
 	return sb.String()
 }
 
@@ -213,21 +213,21 @@ func (g *Generator) combineHeatmapAndStats(heatmapSVG, statsSVG string) string {
 func extractSVGDimensions(svg string) (int, int) {
 	width := 0
 	height := 0
-	
+
 	// Use regex to extract dimensions
 	widthRegex := regexp.MustCompile(`width="(\d+)"`)
 	heightRegex := regexp.MustCompile(`height="(\d+)"`)
-	
+
 	widthMatches := widthRegex.FindStringSubmatch(svg)
 	if len(widthMatches) > 1 {
-		fmt.Sscanf(widthMatches[1], "%d", &width)
+		_, _ = fmt.Sscanf(widthMatches[1], "%d", &width)
 	}
-	
+
 	heightMatches := heightRegex.FindStringSubmatch(svg)
 	if len(heightMatches) > 1 {
-		fmt.Sscanf(heightMatches[1], "%d", &height)
+		_, _ = fmt.Sscanf(heightMatches[1], "%d", &height)
 	}
-	
+
 	return width, height
 }
 
@@ -235,11 +235,11 @@ func extractSVGDimensions(svg string) (int, int) {
 func extractSVGContent(svg string) string {
 	startIdx := strings.Index(svg, ">")
 	endIdx := strings.LastIndex(svg, "</svg>")
-	
+
 	if startIdx != -1 && endIdx != -1 {
 		return svg[startIdx+1 : endIdx]
 	}
-	
+
 	return ""
 }
 
@@ -255,7 +255,7 @@ func max(a, b int) int {
 func (g *Generator) GenerateLocationHeatmap(activities []strava.SummaryActivity, privacyRadius int) (string, error) {
 	// Placeholder for future implementation
 	// This would generate a map visualization of activity locations
-	
+
 	// For now, return a placeholder SVG
 	return `<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="400" height="300" fill="#f0f0f0" rx="6" />

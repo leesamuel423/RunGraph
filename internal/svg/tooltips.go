@@ -11,14 +11,14 @@ import (
 
 // TooltipData holds data needed for a tooltip
 type TooltipData struct {
-	Date            time.Time
-	ActivityCount   int
-	TotalDistance   float64
-	TotalDuration   int
-	TotalElevation  float64
-	ActivityTypes   map[string]int
-	HasPR           bool
-	CustomFields    map[string]string
+	Date           time.Time
+	ActivityCount  int
+	TotalDistance  float64
+	TotalDuration  int
+	TotalElevation float64
+	ActivityTypes  map[string]int
+	HasPR          bool
+	CustomFields   map[string]string
 }
 
 // NewTooltipData creates tooltip data from a daily activity
@@ -61,7 +61,7 @@ func GenerateTooltipSVG(data *TooltipData) string {
 	width := 200
 	padding := 10
 	lineHeight := 18
-	
+
 	// Calculate number of lines for sizing
 	lines := 3 // Date and activity count + 1 empty line
 	if data.TotalDistance > 0 {
@@ -82,13 +82,13 @@ func GenerateTooltipSVG(data *TooltipData) string {
 	for range data.CustomFields {
 		lines++
 	}
-	
+
 	height := (lines * lineHeight) + (padding * 2)
 
 	// Start SVG tooltip
 	sb.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		width, height, width, height))
-	
+
 	// Add style
 	sb.WriteString(`<style>
   .tooltip-bg { fill: white; stroke: #ddd; rx: 4; }
@@ -101,61 +101,61 @@ func GenerateTooltipSVG(data *TooltipData) string {
     .tooltip-text { fill: #8b949e; }
   }
 </style>`)
-	
+
 	// Background
 	sb.WriteString(fmt.Sprintf(`<rect x="0" y="0" width="%d" height="%d" class="tooltip-bg" />`, width, height))
-	
+
 	// Title - date
 	sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-title">%s</text>`,
 		padding, padding+lineHeight, data.Date.Format("Monday, January 2, 2006")))
-	
+
 	// Activity count
 	sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text">%d %s</text>`,
-		padding, padding+(lineHeight*2), 
+		padding, padding+(lineHeight*2),
 		data.ActivityCount, pluralize("activity", data.ActivityCount)))
-	
+
 	currentLine := 3
-	
+
 	// Distance
 	if data.TotalDistance > 0 {
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text">%.1f km total distance</text>`,
 			padding, padding+(lineHeight*currentLine), data.TotalDistance/1000))
 		currentLine++
 	}
-	
+
 	// Duration
 	if data.TotalDuration > 0 {
 		hours := data.TotalDuration / 3600
 		minutes := (data.TotalDuration % 3600) / 60
-		
+
 		durationText := ""
 		if hours > 0 {
-			durationText = fmt.Sprintf("%d %s %d %s", 
+			durationText = fmt.Sprintf("%d %s %d %s",
 				hours, pluralize("hour", hours),
 				minutes, pluralize("minute", minutes))
 		} else {
 			durationText = fmt.Sprintf("%d %s", minutes, pluralize("minute", minutes))
 		}
-		
+
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text">%s total time</text>`,
 			padding, padding+(lineHeight*currentLine), durationText))
 		currentLine++
 	}
-	
+
 	// Elevation
 	if data.TotalElevation > 0 {
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text">%.0f m elevation gain</text>`,
 			padding, padding+(lineHeight*currentLine), data.TotalElevation))
 		currentLine++
 	}
-	
+
 	// Personal Record
 	if data.HasPR {
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text tooltip-highlight">Personal Record!</text>`,
 			padding, padding+(lineHeight*currentLine)))
 		currentLine++
 	}
-	
+
 	// Activity types
 	if len(data.ActivityTypes) > 0 {
 		// Convert to sorted slice for consistent display
@@ -163,54 +163,54 @@ func GenerateTooltipSVG(data *TooltipData) string {
 			Type  string
 			Count int
 		}
-		
+
 		var activityTypes []activityTypeCount
 		for t, count := range data.ActivityTypes {
 			activityTypes = append(activityTypes, activityTypeCount{t, count})
 		}
-		
+
 		// Sort by count descending
 		sort.Slice(activityTypes, func(i, j int) bool {
 			return activityTypes[i].Count > activityTypes[j].Count
 		})
-		
+
 		// Show up to 3 activity types
 		maxTypes := min(len(activityTypes), 3)
 		for i := 0; i < maxTypes; i++ {
 			typeData := activityTypes[i]
 			sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text">%d %s</text>`,
-				padding, padding+(lineHeight*currentLine), 
+				padding, padding+(lineHeight*currentLine),
 				typeData.Count, typeData.Type))
 			currentLine++
 		}
 	}
-	
+
 	// Custom fields
 	for key, value := range data.CustomFields {
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text">%s: %s</text>`,
 			padding, padding+(lineHeight*currentLine), key, value))
 		currentLine++
 	}
-	
+
 	sb.WriteString(`</svg>`)
-	
+
 	return sb.String()
 }
 
 // generateEmptyTooltip creates a tooltip for days with no activities
 func generateEmptyTooltip(date time.Time) string {
 	var sb strings.Builder
-	
+
 	// Tooltip size
 	width := 200
 	height := 60
 	padding := 10
 	lineHeight := 18
-	
+
 	// Start SVG
 	sb.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg">`,
 		width, height, width, height))
-	
+
 	// Add style
 	sb.WriteString(`<style>
   .tooltip-bg { fill: white; stroke: #ddd; rx: 4; }
@@ -222,20 +222,20 @@ func generateEmptyTooltip(date time.Time) string {
     .tooltip-text { fill: #8b949e; }
   }
 </style>`)
-	
+
 	// Background
 	sb.WriteString(fmt.Sprintf(`<rect x="0" y="0" width="%d" height="%d" class="tooltip-bg" />`, width, height))
-	
+
 	// Date
 	sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-title">%s</text>`,
 		padding, padding+lineHeight, date.Format("Monday, January 2, 2006")))
-	
+
 	// No activities message
 	sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="tooltip-text">No activities on this day</text>`,
 		padding, padding+(lineHeight*2)))
-	
+
 	sb.WriteString(`</svg>`)
-	
+
 	return sb.String()
 }
 

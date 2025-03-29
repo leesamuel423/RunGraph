@@ -52,7 +52,7 @@ func (c *Client) GetAllActivities(after, before time.Time, types []string) ([]Su
 	const perPage int = 100 // Maximum allowed by Strava API
 
 	if c.debug {
-		c.logDebug(fmt.Sprintf("Fetching all activities between %s and %s", 
+		c.logDebug(fmt.Sprintf("Fetching all activities between %s and %s",
 			after.Format("2006-01-02"), before.Format("2006-01-02")))
 	}
 

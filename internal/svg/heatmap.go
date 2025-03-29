@@ -21,10 +21,10 @@ type HeatmapCell struct {
 
 // HeatmapData holds all data needed to generate the heatmap
 type HeatmapData struct {
-	StartDate  time.Time
-	EndDate    time.Time
-	Cells      [][]*HeatmapCell // [week][day]
-	WeekLabels []string
+	StartDate   time.Time
+	EndDate     time.Time
+	Cells       [][]*HeatmapCell // [week][day]
+	WeekLabels  []string
 	MonthLabels []struct {
 		Month string
 		X     int
@@ -106,7 +106,7 @@ func (h *HeatmapData) createGrid(activities []*strava.DailyActivity, metricType 
 	// Calculate the number of weeks needed
 	startOffset := h.dayOffset(h.StartDate.Weekday())
 	endOffset := 6 - h.dayOffset(h.EndDate.Weekday())
-	
+
 	totalDays := int(h.EndDate.Sub(h.StartDate).Hours()/24) + 1
 	totalWeeks := (totalDays + startOffset + endOffset) / 7
 	if (totalDays+startOffset+endOffset)%7 > 0 {
@@ -124,25 +124,25 @@ func (h *HeatmapData) createGrid(activities []*strava.DailyActivity, metricType 
 	for week := 0; week < totalWeeks; week++ {
 		for day := 0; day < 7; day++ {
 			dateKey := current.Format("2006-01-02")
-			
+
 			// Check if we have activity data for this day
 			activity, exists := activityMap[dateKey]
-			
+
 			// Calculate intensity
 			var intensity strava.HeatmapIntensity
 			hasPR := false
 			count := 0
-			
+
 			if exists && activity.Count > 0 {
 				// Determine intensity based on metric type
 				intensity = calculateIntensity(activity, metricType, activities)
 				hasPR = activity.HasPR
 				count = activity.Count
 			}
-			
+
 			// Create tooltip
 			tooltip := createTooltip(current, activity)
-			
+
 			// Create the cell
 			h.Cells[week][day] = &HeatmapCell{
 				Date:      current,
@@ -151,7 +151,7 @@ func (h *HeatmapData) createGrid(activities []*strava.DailyActivity, metricType 
 				Count:     count,
 				Tooltip:   tooltip,
 			}
-			
+
 			// Move to next day
 			current = current.AddDate(0, 0, 1)
 		}
@@ -181,7 +181,7 @@ func (h *HeatmapData) generateLabels() {
 		for day := 0; day < 7; day++ {
 			cell := h.Cells[week][day]
 			month := cell.Date.Month()
-			
+
 			// If we found a new month, add a label
 			if int(month) != currentMonth {
 				currentMonth = int(month)
@@ -204,22 +204,22 @@ func (h *HeatmapData) generateLabels() {
 func (h *HeatmapData) RenderSVG() string {
 	// Make the heatmap extremely wide by displaying many days per row
 	// And organize into exactly 7 rows (one for each day of the week)
-	
+
 	// Calculate approximately how many weeks we have data for
 	totalWeeks := len(h.Cells)
-	
+
 	// Double the width by making cellsPerRow very large
 	cellsPerRow := totalWeeks
-	
+
 	// We want 7 rows (one per day of the week)
 	rowsCount := 7
-	
+
 	// Increase spacing between cells for better readability
 	h.CellSpacing = 4
-	
+
 	// Wide padding for a very wide display
 	widthPadding := 100
-	
+
 	totalWidth := (cellsPerRow * (h.CellSize + h.CellSpacing)) + widthPadding
 	totalHeight := (rowsCount * (h.CellSize + h.CellSpacing)) + 80 // +80 for labels
 
@@ -303,14 +303,14 @@ func (h *HeatmapData) writeStyle(sb *strings.Builder) {
 // writeMonthLabels adds month labels to the SVG
 func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 	sb.WriteString(`<g class="heatmap-month-labels">`)
-	
+
 	// Calculate total weeks to display
 	totalWeeks := len(h.Cells)
-	
+
 	// For our wide layout, we'll place month labels at the appropriate weeks
 	// First, organize weeks by month-year combination
 	monthYearStarts := make(map[string]int) // "month-year" -> first week
-	
+
 	// Find the first week of each month
 	for week := 0; week < totalWeeks; week++ {
 		if week < len(h.Cells) && len(h.Cells[week]) > 0 {
@@ -318,104 +318,104 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 			month := int(date.Month())
 			year := date.Year()
 			key := fmt.Sprintf("%d-%d", month, year)
-			
+
 			// If this is the first week we've seen this month-year combination
 			if _, exists := monthYearStarts[key]; !exists {
 				monthYearStarts[key] = week
 			}
 		}
 	}
-	
+
 	// Standard 3-letter month abbreviations
 	monthNames := []string{"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
-	
+
 	// Add month labels at the right positions
 	leftPadding := 70 // Same as cell padding
-	
+
 	// Sort the month-year combinations by week position
 	type monthYearPosition struct {
 		monthYear string
-		week int
+		week      int
 	}
-	
+
 	var sortedPositions []monthYearPosition
 	for monthYear, week := range monthYearStarts {
 		sortedPositions = append(sortedPositions, monthYearPosition{monthYear, week})
 	}
-	
+
 	// Sort by week position
 	sort.Slice(sortedPositions, func(i, j int) bool {
 		return sortedPositions[i].week < sortedPositions[j].week
 	})
-	
+
 	// Spacing for 3-letter abbreviations
 	minSpacingNeeded := 35
-	
+
 	var lastLabelX int = -minSpacingNeeded * 2 // Start with a value that won't interfere
-	
+
 	// Skip the first month in the timeline
 	var firstMonthSkipped bool = false
-	
+
 	for _, pos := range sortedPositions {
 		parts := strings.Split(pos.monthYear, "-")
 		if len(parts) != 2 {
 			continue
 		}
-		
+
 		month, _ := strconv.Atoi(parts[0])
-		
+
 		if month <= 0 || month > 12 {
 			continue
 		}
-		
+
 		// Skip the first month that appears in the sequence
 		if !firstMonthSkipped {
 			firstMonthSkipped = true
 			continue
 		}
-		
+
 		// Position label at the start of each month
 		x := (pos.week * (h.CellSize + h.CellSpacing)) + leftPadding
 		y := 20 // Top margin for month labels
-		
+
 		// Only place label if there's enough space from the last one
-		if x - lastLabelX >= minSpacingNeeded {
+		if x-lastLabelX >= minSpacingNeeded {
 			// Use standard 3-letter abbreviation
 			labelText := monthNames[month]
-			
+
 			sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-month-label">%s</text>`,
 				x, y, labelText))
-			
+
 			lastLabelX = x
 		}
 	}
-	
+
 	sb.WriteString(`</g>`)
 }
 
 // writeWeekLabels adds week labels to the SVG
 func (h *HeatmapData) writeWeekLabels(sb *strings.Builder) {
 	sb.WriteString(`<g class="heatmap-week-labels">`)
-	
+
 	// We're removing the confusing week labels since they weren't clear
 	// Instead, we're using increased left padding and focusing on the month labels
-	
+
 	sb.WriteString(`</g>`)
 }
 
 // writeCells adds all cells to the SVG
 func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 	sb.WriteString(`<g class="heatmap-cells">`)
-	
+
 	// Calculate total weeks to display
 	totalWeeks := len(h.Cells)
-	
+
 	// We're using a fixed 7-row layout (one for each day of the week)
 	daysInWeek := 7
-	
+
 	// Define day labels in standard order
 	standardDayLabels := []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
-	
+
 	// Arrange day labels based on the configured week start
 	var dayLabels []string
 	if h.WeekStart == "Monday" {
@@ -425,16 +425,16 @@ func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 		// Start with Sunday (standard order)
 		dayLabels = standardDayLabels
 	}
-	
+
 	leftPadding := 70 // Increased for more space
-	
+
 	// Add day of week labels on the left side
 	for i, label := range dayLabels {
 		y := (i * (h.CellSize + h.CellSpacing)) + 30 + (h.CellSize / 2) + 5
 		sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-day-label" text-anchor="end">%s</text>`,
-			leftPadding - 10, y, label))
+			leftPadding-10, y, label))
 	}
-	
+
 	// Loop through all cells and arrange them in a 7-row grid
 	for week := 0; week < totalWeeks; week++ {
 		for day := 0; day < daysInWeek; day++ {
@@ -442,65 +442,65 @@ func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 			if week >= len(h.Cells) || day >= len(h.Cells[week]) {
 				continue
 			}
-			
+
 			cell := h.Cells[week][day]
-			
+
 			// Skip days outside our date range
 			if cell.Date.Before(h.StartDate) || cell.Date.After(h.EndDate) {
 				continue
 			}
-			
+
 			// In this layout:
 			// - Rows are days of the week (based on WeekStart configuration)
 			// - Columns are weeks (increasing from left to right)
-			
+
 			x := (week * (h.CellSize + h.CellSpacing)) + leftPadding
 			y := (day * (h.CellSize + h.CellSpacing)) + 30 // Top padding for month labels
-			
+
 			// Determine fill color based on intensity
 			colorClass := fmt.Sprintf("intensity-%d", cell.Intensity)
-			
+
 			// Add cell
 			sb.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" class="heatmap-cell %s" data-date="%s" data-count="%d">`,
 				x, y, h.CellSize, h.CellSize, colorClass, cell.Date.Format("2006-01-02"), cell.Count))
 			sb.WriteString(fmt.Sprintf(`<title>%s</title></rect>`, cell.Tooltip))
-			
+
 			// Add PR marker if applicable
 			if cell.HasPR {
-				prX := x + (h.CellSize * 3/4)
-				prY := y + (h.CellSize * 1/4)
+				prX := x + (h.CellSize * 3 / 4)
+				prY := y + (h.CellSize * 1 / 4)
 				prRadius := h.CellSize / 6
-				
+
 				sb.WriteString(fmt.Sprintf(`<circle cx="%d" cy="%d" r="%d" class="pr-marker" />`,
 					prX, prY, prRadius))
 			}
-			
+
 			// Add tooltip for hover
 			tooltipWidth := 200
 			tooltipHeight := 80
 			tooltipX := x + h.CellSize + 5
 			tooltipY := y
-			
+
 			// If tooltip would go off right edge, place it to the left of the cell
-			if tooltipX + tooltipWidth > totalWidth {
+			if tooltipX+tooltipWidth > totalWidth {
 				tooltipX = x - tooltipWidth - 5
 			}
-			
+
 			sb.WriteString(fmt.Sprintf(`<g class="heatmap-tooltip" transform="translate(%d, %d)">`,
 				tooltipX, tooltipY))
-			
+
 			sb.WriteString(fmt.Sprintf(`<rect x="0" y="0" width="%d" height="%d" class="heatmap-tooltip-rect" />`,
 				tooltipWidth, tooltipHeight))
-			
+
 			// Only add detailed tooltip content if there are activities
 			if cell.Count > 0 {
 				// We'll use a simplified tooltip for now
 				sb.WriteString(fmt.Sprintf(`<text x="10" y="15" class="heatmap-tooltip-text heatmap-tooltip-header">%s</text>`,
 					cell.Date.Format("January 2, 2006")))
-				
+
 				sb.WriteString(fmt.Sprintf(`<text x="10" y="35" class="heatmap-tooltip-text">%d activities</text>`,
 					cell.Count))
-				
+
 				if cell.HasPR {
 					sb.WriteString(`<text x="10" y="55" class="heatmap-tooltip-text" fill="#ff8c00">Personal Record!</text>`)
 				}
@@ -508,11 +508,11 @@ func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 				sb.WriteString(fmt.Sprintf(`<text x="10" y="25" class="heatmap-tooltip-text">No activities on %s</text>`,
 					cell.Date.Format("January 2, 2006")))
 			}
-			
+
 			sb.WriteString(`</g>`)
 		}
 	}
-	
+
 	sb.WriteString(`</g>`)
 }
 
@@ -520,37 +520,37 @@ func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 func (h *HeatmapData) writeLegend(sb *strings.Builder, totalWidth int) {
 	// We have 7 rows in our new layout
 	rowsCount := 7
-	
+
 	// Position legend just below the last row of cells with minimal gap
 	legendY := (rowsCount * (h.CellSize + h.CellSpacing)) + 50
-	
+
 	// Center the legend
-	legendWidth := 5 * (h.CellSize + 2) + 100 // space for boxes + labels
-	
+	legendWidth := 5*(h.CellSize+2) + 100 // space for boxes + labels
+
 	// Position legend at the center of the heatmap's width
 	centerX := (totalWidth - legendWidth) / 2
-	
-	sb.WriteString(fmt.Sprintf(`<g class="heatmap-legend" transform="translate(%d, %d)">`, 
+
+	sb.WriteString(fmt.Sprintf(`<g class="heatmap-legend" transform="translate(%d, %d)">`,
 		centerX, legendY))
-	
+
 	// Legend label - Vertically center with boxes
 	sb.WriteString(`<text x="0" y="11" class="heatmap-legend-text" text-anchor="start">Less</text>`)
-	
+
 	// Legend boxes - increase size for better visibility
 	boxSize := h.CellSize + 4 // Make boxes slightly larger
 	for i := 0; i < 5; i++ {
 		x := 40 + (i * (boxSize + 4))
-		
+
 		colorClass := fmt.Sprintf("intensity-%d", i)
-		
+
 		sb.WriteString(fmt.Sprintf(`<rect x="%d" y="0" width="%d" height="%d" class="heatmap-cell %s" />`,
 			x, boxSize, boxSize, colorClass))
 	}
-	
+
 	// More label - Vertically center with boxes
 	sb.WriteString(fmt.Sprintf(`<text x="%d" y="11" class="heatmap-legend-text" text-anchor="start">More</text>`,
-		40 + (5 * (boxSize + 4)) + 5))
-	
+		40+(5*(boxSize+4))+5))
+
 	sb.WriteString(`</g>`)
 }
 
@@ -619,14 +619,14 @@ func calculateIntensity(day *strava.DailyActivity, metricType string, allActivit
 	// Simple percentile-based binning
 	// Here we're using a simple algorithm for demonstration
 	// In a real implementation, we might use more sophisticated statistical methods
-	
+
 	// Sort values in ascending order
 	sort.Float64s(values)
-	
+
 	// Find position of the day's value
 	pos := sort.SearchFloat64s(values, dayValue)
 	percentile := float64(pos) / float64(len(values))
-	
+
 	if percentile <= 0.25 {
 		return strava.Low
 	} else if percentile <= 0.5 {
@@ -646,39 +646,39 @@ func createTooltip(date time.Time, activity *strava.DailyActivity) string {
 
 	// Format distance in km
 	distance := activity.TotalDistance / 1000
-	
+
 	// Format duration in hours and minutes
 	hours := activity.TotalDuration / 3600
 	minutes := (activity.TotalDuration % 3600) / 60
-	
-	tooltip := fmt.Sprintf("%s: %d %s", 
+
+	tooltip := fmt.Sprintf("%s: %d %s",
 		date.Format("Jan 2, 2006"),
 		activity.Count,
 		pluralize("activity", activity.Count))
-	
+
 	if distance > 0 {
 		tooltip += fmt.Sprintf("\nTotal distance: %.1f km", distance)
 	}
-	
+
 	if activity.TotalDuration > 0 {
 		if hours > 0 {
-			tooltip += fmt.Sprintf("\nTotal time: %d %s %d %s", 
-				hours, pluralize("hour", hours), 
+			tooltip += fmt.Sprintf("\nTotal time: %d %s %d %s",
+				hours, pluralize("hour", hours),
 				minutes, pluralize("minute", minutes))
 		} else {
-			tooltip += fmt.Sprintf("\nTotal time: %d %s", 
+			tooltip += fmt.Sprintf("\nTotal time: %d %s",
 				minutes, pluralize("minute", minutes))
 		}
 	}
-	
+
 	if activity.TotalElevation > 0 {
 		tooltip += fmt.Sprintf("\nTotal elevation: %.0f m", activity.TotalElevation)
 	}
-	
+
 	if activity.HasPR {
 		tooltip += "\nPersonal Record!"
 	}
-	
+
 	return tooltip
 }
 
@@ -688,9 +688,4 @@ func pluralize(word string, count int) string {
 		return word
 	}
 	return word + "s"
-}
-
-// Helper function to calculate total days in a year (approximate)
-func totalDaysInYear() int {
-	return 365
 }

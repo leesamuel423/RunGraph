@@ -107,4 +107,3 @@ curl -X POST https://www.strava.com/oauth/token \
 
 	return instructions
 }
-

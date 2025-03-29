@@ -209,12 +209,40 @@ Set `darkModeSupport` to `false` if you prefer to disable dark mode support.
 │   └── templates/                  # SVG templates
 ├── examples/                       # Usage examples
 │   └── config.customized.json      # Comprehensive config example
+├── scripts/                        # Development scripts
+│   └── pre-commit.sh               # Git pre-commit hook script
 ├── config.json                     # Configuration file
 ├── export_env.sh                   # Environment variable helper
 ├── .env.example                    # Environment template
+├── Makefile                        # Development automation
 ├── README.md                       # Primary documentation
 ├── INSTALL.md                      # Installation guide
 └── API.md                          # API reference
+```
+
+### Development
+
+#### Code Formatting
+
+This project uses automatic code formatting and linting via Git pre-commit hooks. To set up the development environment:
+
+```bash
+# Install the pre-commit hook
+make install-hooks
+```
+
+The pre-commit hook will automatically:
+- Format Go code using `gofmt`
+- Run `golangci-lint` to check for issues
+- Add formatted files to your commit
+
+You can also manually run formatting and linting:
+
+```bash
+make fmt     # Format code with gofmt
+make lint    # Run golangci-lint
+make check   # Run both formatting and linting
+make test    # Run tests
 ```
 
 ### Contributing

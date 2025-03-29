@@ -127,6 +127,6 @@ func ActivityTypeColors() map[string]string {
 		"Surfing":         "#00bfa5", // Teal
 		"VirtualRun":      "#ff7043", // Deep orange light
 		// Fallback color for any other activity type
-		"default":         "#6c757d", // Grey
+		"default": "#6c757d", // Grey
 	}
 }

@@ -34,9 +34,9 @@ func (a *ActivityAggregator) Aggregate() map[string]*strava.DailyActivity {
 		dailyActivity, exists := a.DailyData[dateKey]
 		if !exists {
 			dailyActivity = &strava.DailyActivity{
-				Date:         localDate,
-				Types:        make(map[string]int),
-				Activities:   []int64{},
+				Date:       localDate,
+				Types:      make(map[string]int),
+				Activities: []int64{},
 			}
 			a.DailyData[dateKey] = dailyActivity
 		}
@@ -84,7 +84,7 @@ func (a *ActivityAggregator) GetOrderedDates(startDate, endDate time.Time) []*st
 	current := startDate
 	for !current.After(endDate) {
 		dateKey := current.Format("2006-01-02")
-		
+
 		// Check if we have data for this date
 		dailyActivity, exists := a.DailyData[dateKey]
 		if !exists {
@@ -94,7 +94,7 @@ func (a *ActivityAggregator) GetOrderedDates(startDate, endDate time.Time) []*st
 				Types: make(map[string]int),
 			}
 		}
-		
+
 		result = append(result, dailyActivity)
 		current = current.AddDate(0, 0, 1) // Next day
 	}
@@ -195,7 +195,7 @@ func getPercentileRank(sortedValues []float64, value float64) float64 {
 
 	// Find position using binary search
 	pos := sort.SearchFloat64s(sortedValues, value)
-	
+
 	// Calculate percentile rank
 	return float64(pos) / float64(len(sortedValues))
 }
