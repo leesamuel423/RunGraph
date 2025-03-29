@@ -1,197 +1,235 @@
 # Installation Guide
 
-This guide will walk you through the process of setting up the Strava-GitHub Heatmap for your GitHub profile.
+This document provides comprehensive installation and configuration instructions for integrating the Strava activity heatmap into your GitHub profile.
 
 ## Prerequisites
 
+Before beginning the installation process, ensure you have:
+
 - A GitHub account with a profile README repository (`<username>/<username>`)
-- A Strava account with activities
-- A Strava API application (for authentication)
+- An active Strava account containing activity data
+- Basic familiarity with GitHub Actions and repository settings
 
-## Step 1: Fork This Repository
+## Installation Process
 
-1. Click the "Fork" button at the top right of this repository.
-2. This will create a copy of the repository under your GitHub account.
+### Step 1: Repository Setup
 
-## Step 2: Create a Strava API Application
+1. **Fork the StravaGraph Repository**
 
-1. Go to [Strava API Settings](https://www.strava.com/settings/api)
-2. Create a new application with the following details:
-   - **Application Name**: GitHub Activity Heatmap (or any name you prefer)
-   - **Category**: Other
-   - **Website**: Your GitHub profile URL (e.g., `https://github.com/yourusername`)
-   - **Authorization Callback Domain**: `localhost`
-3. After creating the application, note down your **Client ID** and **Client Secret**.
+   - Navigate to the main repository page
+   - Click the "Fork" button in the upper right corner
+   - Wait for GitHub to create your personal copy of the repository
 
-## Step 3: Get Your Strava Refresh Token
-
-1. Install the tool or run it directly using Go:
+2. **Clone Your Fork** (Optional for local development)
+   ```bash
+   git clone https://github.com/your-username/StravaGraph.git
+   cd StravaGraph
    ```
-   go run ./cmd/strava-heatmap/main.go -auth
+
+### Step 2: Strava API Configuration
+
+1. **Create a Strava API Application**
+
+   - Visit [Strava API Settings](https://www.strava.com/settings/api)
+   - Click "Create & Manage Your App"
+   - Complete the application form with the following details:
+     - **Application Name**: GitHub Activity Heatmap (or preferred name)
+     - **Category**: Other
+     - **Website**: Your GitHub profile URL (e.g., `https://github.com/your-username`)
+     - **Authorization Callback Domain**: `localhost`
+
+2. **Obtain API Credentials**
+   - After creating the application, note your **Client ID** and **Client Secret**
+   - These credentials will be required in subsequent steps
+
+### Step 3: Authentication Setup
+
+1. **Install Dependencies** (for local development)
+
+   ```bash
+   # If working with the code locally
+   go mod download
    ```
-   
-2. Set the environment variables with your Strava API credentials:
+
+2. **Configure Strava API Credentials**
+
+   #### Option A: Using a .env File (Recommended for local development)
+
+   ```bash
+   # Create and populate .env file
+   cp .env.example .env
+   # Edit .env with your credentials
    ```
+
+   #### Option B: Using Environment Variables
+
+   ```bash
    export STRAVA_CLIENT_ID=your_client_id
    export STRAVA_CLIENT_SECRET=your_client_secret
    ```
 
-3. Follow the instructions displayed to authorize the application and obtain your refresh token.
+3. **Generate Refresh Token**
+
+   ```bash
+   go run ./cmd/strava-heatmap/main.go -auth
+   ```
+
+4. **Follow Authentication Instructions**
    - You'll be directed to a Strava authorization page
-   - After authorization, you'll get a code that can be exchanged for a refresh token
-   - Use the provided curl command to exchange the code
-   - Copy the refresh token from the response
+   - After authorizing, you'll receive a code in the redirect URL
+   - Exchange this code for a refresh token using the provided curl command
+   - Save the refresh token value from the response
+   - Add the refresh token to your .env file if using that method
 
-## Step 4: Configure GitHub Repository Secrets
+### Step 4: GitHub Configuration
 
-1. Go to your forked repository's settings.
-2. Navigate to "Secrets and variables" > "Actions".
-3. Add the following repository secrets:
-   - `STRAVA_CLIENT_ID`: Your Strava API client ID
-   - `STRAVA_CLIENT_SECRET`: Your Strava API client secret
-   - `STRAVA_REFRESH_TOKEN`: The refresh token you obtained in Step 3
+1. **Create GitHub Personal Access Token (PAT)**
 
-## Step 5: Set Up Your GitHub Profile README
+   - Navigate to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+   - Click "Generate new token" → "Generate new token (classic)"
+   - Configure the token:
+     - **Name**: StravaGraph
+     - **Expiration**: Select appropriate duration
+     - **Scopes**: Select `repo` (Full control of private repositories)
+   - Click "Generate token"
+   - **IMPORTANT**: Copy the generated token immediately; it will not be shown again
 
-1. Create a GitHub profile README repository if you don't have one already:
+2. **Configure Repository Secrets**
+   - Go to your forked repository's settings
+   - Navigate to "Secrets and variables" → "Actions"
+   - Add the following repository secrets:
+     - `STRAVA_CLIENT_ID`: Your Strava API client ID
+     - `STRAVA_CLIENT_SECRET`: Your Strava API client secret
+     - `STRAVA_REFRESH_TOKEN`: Your Strava refresh token
+     - `PAT`: Your GitHub Personal Access Token
+
+### Step 5: GitHub Profile README Integration
+
+1. **Create Profile Repository** (if needed)
+
    - Create a new repository with the same name as your GitHub username
-   - Add a README.md file to this repository
+   - Initialize it with a README.md file
 
-2. Add the following markers to your README where you want the Strava heatmap to appear:
+2. **Add Integration Markers**
+
+   - Edit your profile README.md
+   - Add the following markers where you want the heatmap to appear:
+
    ```markdown
    ## My Strava Activity
+
    <!-- STRAVA-HEATMAP-START -->
    <!-- STRAVA-HEATMAP-END -->
    ```
 
-3. Update your workflow file to target your profile repository:
-   - In the workflow file, replace the repository name in the checkout step:
+3. **Configure Workflow Repository Target**
+   - In your forked StravaGraph repository:
+   - Locate the `.github/workflows/update-heatmap.yml` file
+   - Update the `repository` parameter in the "Checkout profile repository" step:
    ```yaml
-   - name: Generate Heatmap SVG
-     env:
-       STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
-       STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
-       STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
-     run: |
-       # Save SVG output to a file
-       ./strava-heatmap -generate > strava-heatmap.svg
-       echo "Generated SVG file:"
-       ls -la strava-heatmap.svg
-   
-   - name: Install SVG to PNG conversion packages
-     run: |
-       sudo apt-get update
-       sudo apt-get install -y librsvg2-bin imagemagick
-   
-   - name: Convert SVG to PNG
-     run: |
-       # Convert SVG to PNG for reliable GitHub README display
-       rsvg-convert -o strava-heatmap.png strava-heatmap.svg
-       echo "Successfully created PNG file:"
-       ls -la strava-heatmap.png
-   
-   - name: Checkout profile repository
-     uses: actions/checkout@v3
-     with:
-       repository: yourusername/yourusername  # Your profile repo
-       path: profile
-       token: ${{ secrets.PAT }}
+   repository: your-username/your-username # Replace with your GitHub username
    ```
 
-## Step 6: Customize Your Heatmap (Optional)
+### Step 6: Customization
 
-Edit the `config.json` file in your forked repository to customize the appearance and behavior of your heatmap:
+Customize the appearance and behavior of your heatmap by editing the `config.json` file:
 
 ```json
 {
-  "activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
-  "metricType": "distance",
-  "colorScheme": "strava",
-  "showStats": false,
-  "dateRange": "1year",
-  "cellSize": 10,
-  "includePRs": true,
-  "includeLocationHeatmap": false,
-  "darkModeSupport": true,
-  "weekStart": "Monday",
-  "language": "en",
-  "timeZone": "UTC"
+	"activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
+	"metricType": "distance",
+	"colorScheme": "strava",
+	"showStats": false,
+	"dateRange": "1year",
+	"cellSize": 10,
+	"includePRs": true,
+	"darkModeSupport": true,
+	"weekStart": "Monday",
+	"timeZone": "UTC"
 }
 ```
 
-See the [README.md](README.md) for detailed information about the configuration options.
+For a complete reference of all configuration options, see [examples/config.customized.json](./examples/config.customized.json).
 
-## Step 7: Run the GitHub Action
+### Step 7: Workflow Execution
 
-1. Go to the "Actions" tab in your forked repository.
-2. Click on the "Update Strava Heatmap" workflow.
-3. Click "Run workflow" to manually trigger the action.
+1. **Trigger Initial Update**
 
-The action will:
-- Build the tool
-- Fetch your Strava activities
-- Generate the heatmap SVG
-- Update your profile README
-- Commit and push the changes
+   - Go to the "Actions" tab in your forked repository
+   - Select the "Update Strava Heatmap" workflow
+   - Click "Run workflow" and confirm
 
-The workflow is also scheduled to run daily at midnight UTC to keep your heatmap updated.
+2. **Verify Implementation**
+   - Once the workflow completes successfully, visit your GitHub profile
+   - Confirm the heatmap appears correctly between the markers
+   - The workflow will subsequently run automatically according to the configured schedule (daily at midnight UTC)
+
+## Maintenance
+
+### Token Refresh Handling
+
+- The Strava refresh token is designed for long-term use and should remain valid indefinitely
+- The system automatically handles access token refreshes when needed
+- You will only need to generate a new refresh token if:
+  - You explicitly revoke access for the application
+  - You change your Strava account password
+  - Strava modifies their security policies
+
+### GitHub PAT Renewal
+
+- Monitor your PAT expiration date if you set a limited duration
+- Generate a new token before expiration and update the `PAT` secret in your repository
 
 ## Troubleshooting
 
-- **Authentication Issues**: If you encounter authentication errors, try regenerating your refresh token.
-- **Missing Activities**: Ensure you've granted the appropriate permissions when authorizing the Strava application.
-- **Workflow Failures**: Check the GitHub Actions logs for detailed error messages.
-- **Permission Errors (403) When Pushing to Profile Repository**: If you're trying to update your profile README from another repository:
+### Authentication Issues
 
-  1. Create a Personal Access Token (PAT) with sufficient permissions:
-     - Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
-     - Generate a new token with "repo" scope
-     - Copy the generated token
-  
-  2. Add this token as a repository secret named `PAT`
-  
-  3. Use a workflow that checks out your profile repository separately:
+If encountering authentication errors:
 
-  ```yaml
-  - name: Checkout profile repository
-    uses: actions/checkout@v3
-    with:
-      repository: yourusername/yourusername  # Your profile repo
-      path: profile
-      token: ${{ secrets.PAT }}
-  
-  - name: Update README in profile repository
-    run: |
-      # Create necessary directories
-      mkdir -p profile/assets
-      
-      # Copy PNG file to profile repo assets directory
-      cp strava-heatmap.png profile/assets/
-      
-      # Update README with image link
-      cd profile
-      
-      # Create a temporary file for README content
-      TEMP_FILE=$(mktemp)
-      
-      # Process the README file: before markers, image tag, after markers
-      awk 'BEGIN{p=1}/<!-- STRAVA-HEATMAP-START -->/{print;p=0}p' README.md > $TEMP_FILE
-      echo "" >> $TEMP_FILE
-      echo "![Strava Activity Heatmap](./assets/strava-heatmap.png)" >> $TEMP_FILE
-      echo "" >> $TEMP_FILE
-      awk 'BEGIN{p=0}/<!-- STRAVA-HEATMAP-END -->/{p=1}p' README.md >> $TEMP_FILE
-      
-      # Replace the original README with our modified version
-      cp $TEMP_FILE README.md
-      
-      # Commit and push changes
-      git config user.name "GitHub Actions"
-      git config user.email "github-actions[bot]@users.noreply.github.com"
-      git add README.md assets/strava-heatmap.png
-      git commit -m "Update Strava activity heatmap [skip ci]"
-      git push
-  ```
-  
-  This approach correctly separates the tool repository from your profile repository and uses your PAT to authenticate when pushing to your profile.
+1. **Verify Strava API Credentials**
 
-If you need further assistance, please open an issue in the repository.
+   - Confirm Client ID and Client Secret are correct
+   - Regenerate refresh token if necessary
+
+2. **Test Configuration**
+   ```bash
+   go run ./cmd/strava-heatmap/main.go -test
+   ```
+
+### GitHub Actions Workflow Failures
+
+For issues with the GitHub Actions workflow:
+
+1. **Repository Access Errors (403)**
+
+   - Verify your PAT has the correct `repo` scope
+   - Ensure the PAT has not expired
+   - Confirm the PAT is correctly stored as a repository secret
+
+2. **Strava API Errors**
+
+   - Check Actions log for specific error messages
+   - Verify all required Strava API secrets are correctly configured
+   - Ensure the refresh token has the necessary `activity:read_all` scope
+
+3. **README Marker Issues**
+   - Confirm your profile README contains both marker comments exactly as shown
+   - Ensure there are no typos in the marker syntax
+
+### Advanced Debugging
+
+For more insight into issues:
+
+1. Enable debug mode in `config.json`:
+
+   ```json
+   "debug": true
+   ```
+
+2. Examine the workflow run logs in the Actions tab of your repository
+
+If you need further assistance, please open an issue in the repository with a description of your problem and relevant logs (with sensitive information redacted).
+
+---
+
+_This installation guide was last updated: March 2025_

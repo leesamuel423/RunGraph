@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/samuellee/StravaGraph/internal/auth"
 	"github.com/samuellee/StravaGraph/internal/config"
 	"github.com/samuellee/StravaGraph/internal/github"
@@ -16,7 +18,35 @@ import (
 const (
 	configPath = "config.json"
 	readmePath = "README.md"
+	envFile    = ".env"
 )
+
+// loadEnvFile attempts to load variables from .env file
+// It doesn't error if the file doesn't exist, as environment variables
+// might be set through other means (especially in GitHub Actions)
+func loadEnvFile() {
+	// Try to find the .env file in the current directory or parent directories
+	dir, err := os.Getwd()
+	if err == nil {
+		// Start with current directory
+		envPath := filepath.Join(dir, envFile)
+		if _, err := os.Stat(envPath); err == nil {
+			_ = godotenv.Load(envPath)
+			return
+		}
+
+		// Check parent directory
+		parentDir := filepath.Dir(dir)
+		parentEnvPath := filepath.Join(parentDir, envFile)
+		if _, err := os.Stat(parentEnvPath); err == nil {
+			_ = godotenv.Load(parentEnvPath)
+			return
+		}
+	}
+
+	// As a last resort, try relative to executable
+	_ = godotenv.Load(envFile)
+}
 
 func main() {
 	// Define commands
@@ -27,6 +57,9 @@ func main() {
 
 	// Parse command line arguments
 	flag.Parse()
+
+	// Load environment variables from .env file if it exists
+	loadEnvFile()
 
 	// Load configuration
 	cfg, err := config.LoadConfig(configPath)
@@ -100,7 +133,7 @@ func handleUpdateCommand(cfg *config.Config, actionsHandler *github.ActionsHandl
 	}
 
 	if cfg.Debug {
-		fmt.Printf("Fetching activities from %s to %s\n", 
+		fmt.Printf("Fetching activities from %s to %s\n",
 			startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	}
 

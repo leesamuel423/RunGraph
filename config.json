@@ -2,22 +2,12 @@
   "activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
   "metricType": "distance",
   "colorScheme": "strava",
-  "customColors": ["#494950", "#ffd4d1", "#ffad9f", "#fc7566", "#e34a33"],
   "showStats": false,
-  "statTypes": ["weekly", "monthly", "yearly"],
   "dateRange": "1year",
-  "customDateRange": {
-    "start": "2023-01-01",
-    "end": "2023-12-31"
-  },
   "cellSize": 10,
   "includePRs": true,
-  "includeLocationHeatmap": false,
-  "locationPrivacyRadius": 500,
   "darkModeSupport": true,
-  "darkModeColors": ["#36363c", "#7c2c2a", "#a63b33", "#d64c3b", "#fc7566"],
   "weekStart": "Monday",
-  "language": "en",
   "timeZone": "UTC",
   "debug": false
 }

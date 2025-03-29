@@ -81,7 +81,7 @@ func (c *OAuthConfig) ExchangeCodeForToken(code string) (*strava.TokenResponse, 
 // GetInstructionsForUserAuth returns instructions for manual token acquisition
 func GetInstructionsForUserAuth(clientID, clientSecret string) string {
 	authURL := fmt.Sprintf("https://www.strava.com/oauth/authorize?client_id=%s&redirect_uri=http://localhost&response_type=code&scope=activity:read_all", clientID)
-	
+
 	instructions := fmt.Sprintf(`
 Follow these steps to get your Strava API tokens:
 
@@ -107,3 +107,4 @@ curl -X POST https://www.strava.com/oauth/token \
 
 	return instructions
 }
+
