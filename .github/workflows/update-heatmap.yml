@@ -181,6 +181,34 @@ jobs:
           cd profile
           git config user.name "GitHub Actions"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Add debug output
+          echo "Checking for changes in README and image:"
+          git status
+          
+          # Check if the image is different from what's already there
+          if [ -f "assets/strava-heatmap.png" ]; then
+            echo "Comparing new and existing image files:"
+            cmp -l "../$PNG_FILE" "assets/strava-heatmap.png" > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              echo "WARNING: The new PNG file is identical to the existing one - no visual changes detected"
+            else
+              echo "Images are different - updating with new heatmap"
+            fi
+          else
+            echo "No existing image found - this is a first-time setup"
+          fi
+          
+          # Stage the files
           git add README.md assets/strava-heatmap.png
-          git commit -m "Update Strava activity heatmap [skip ci]"
-          git push
+          
+          # Check if there are actually changes to commit
+          git diff --staged --quiet
+          if [ $? -eq 0 ]; then
+            echo "No changes detected in the README or image. Nothing to commit."
+          else
+            # There are changes, commit and push them
+            echo "Changes detected, committing and pushing..."
+            git commit -m "Update Strava activity heatmap [skip ci]"
+            git push
+          fi
