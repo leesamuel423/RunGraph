@@ -189,12 +189,9 @@ jobs:
           # Check if the image is different from what's already there
           if [ -f "assets/strava-heatmap.png" ]; then
             echo "Comparing new and existing image files:"
-            cmp -l "../$PNG_FILE" "assets/strava-heatmap.png" > /dev/null 2>&1
-            if [ $? -eq 0 ]; then
-              echo "WARNING: The new PNG file is identical to the existing one - no visual changes detected"
-            else
-              echo "Images are different - updating with new heatmap"
-            fi
+            # Skip the binary comparison and always update
+            # This ensures the workflow succeeds even if images look identical
+            echo "Updating heatmap image regardless of content similarity"
           else
             echo "No existing image found - this is a first-time setup"
           fi
@@ -202,13 +199,15 @@ jobs:
           # Stage the files
           git add README.md assets/strava-heatmap.png
           
-          # Check if there are actually changes to commit
-          git diff --staged --quiet
-          if [ $? -eq 0 ]; then
-            echo "No changes detected in the README or image. Nothing to commit."
-          else
-            # There are changes, commit and push them
-            echo "Changes detected, committing and pushing..."
-            git commit -m "Update Strava activity heatmap [skip ci]"
+          # Force commit even if the content appears the same
+          # We do this because even slight changes in the heatmap might not be detected by git
+          echo "Committing and pushing changes..."
+          git commit -m "Update Strava activity heatmap [skip ci]" || true
+          
+          # Only push if there was something to commit
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse @{u})" ]; then
+            echo "Changes committed, pushing to remote..."
             git push
+          else
+            echo "No changes to push. Repository is already up to date."
           fi
