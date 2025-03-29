@@ -413,8 +413,19 @@ func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 	// We're using a fixed 7-row layout (one for each day of the week)
 	daysInWeek := 7
 	
-	// Add labels for days of the week
-	dayLabels := []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
+	// Define day labels in standard order
+	standardDayLabels := []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
+	
+	// Arrange day labels based on the configured week start
+	var dayLabels []string
+	if h.WeekStart == "Monday" {
+		// Start with Monday (Monday, Tuesday, ..., Sunday)
+		dayLabels = append(standardDayLabels[1:], standardDayLabels[0])
+	} else {
+		// Start with Sunday (standard order)
+		dayLabels = standardDayLabels
+	}
+	
 	leftPadding := 70 // Increased for more space
 	
 	// Add day of week labels on the left side
@@ -440,7 +451,7 @@ func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 			}
 			
 			// In this layout:
-			// - Rows are days of the week (0=Sunday, 1=Monday, etc.)
+			// - Rows are days of the week (based on WeekStart configuration)
 			// - Columns are weeks (increasing from left to right)
 			
 			x := (week * (h.CellSize + h.CellSpacing)) + leftPadding
