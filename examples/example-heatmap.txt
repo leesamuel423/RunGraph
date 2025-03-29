@@ -1,8 +1,0 @@
-Since we can't create an actual SVG heatmap without Strava credentials, this is a placeholder file.
-
-For a working implementation, you would need to:
-1. Set up your Strava API credentials
-2. Run the tool with actual activity data
-3. The generated SVG would be used in place of this placeholder
-
-An actual rendered example would look similar to GitHub's contribution graph but with colors based on your Strava activity metrics.

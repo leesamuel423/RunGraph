@@ -15,7 +15,7 @@ This tool fetches your Strava activity data and generates a GitHub-style contrib
 
 ## Features
 
-- 🔥 Displays your Strava activities in a GitHub-style heatmap
+- 🔥 Displays your Strava activities in a GitHub-style heatmap with days of the week
 - 🏃‍♂️ Supports running, cycling, swimming and other activity types
 - 🌈 Color intensity based on activity metrics (configurable):
   - Duration: Time spent exercising
@@ -25,10 +25,11 @@ This tool fetches your Strava activity data and generates a GitHub-style contrib
   - Heart rate: Average or max heart rate zones
 - 🔄 Auto-updates daily via GitHub Actions
 - 🔐 Secure authentication with Strava API (no exposing tokens)
-- 📊 Optional statistics summary (weekly, monthly, yearly)
+- 🖌️ Clean, streamlined visualization focusing only on the heatmap
 - 🎯 Customizable appearance to match your GitHub profile theme
-- 🌍 Activity location heatmap option (with privacy controls)
+- 🌙 Dark mode support with automatic theme switching
 - 🏆 Achievement highlighting for PRs and significant milestones
+- 🖼️ PNG rendering for reliable GitHub README display
 
 ## Quick Start
 
@@ -89,10 +90,10 @@ Edit the `config.json` file to customize your heatmap:
 {
   "activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
   "metricType": "distance",
-  "colorScheme": "github",
-  "showStats": true,
+  "colorScheme": "strava",
+  "showStats": false,
   "dateRange": "1year",
-  "cellSize": 11,
+  "cellSize": 10,
   "includePRs": true,
   "darkModeSupport": true,
   "weekStart": "Monday",
@@ -107,6 +108,25 @@ See [examples/config.customized.json](./examples/config.customized.json) for a f
 - [Installation Guide](./INSTALL.md) - Detailed setup instructions
 - [API Documentation](./API.md) - Internal API documentation
 - [Example Profile](./examples/profile/README.md) - Example GitHub profile README
+
+## Recent Changes
+
+- **Enhanced Visualization**:
+  - Redesigned heatmap layout with 7 rows (one per day of the week)
+  - Added clear day-of-week labels (Sun, Mon, Tue, etc.)
+  - Improved month labeling system to prevent overlaps
+  - Customized text colors for better readability
+  - Vertically centered legend text with color boxes
+  - Focused on a clean, minimalist design
+  - Changed to Strava's orange color scheme for better brand alignment
+
+- **Technical Improvements**:
+  - Now renders as PNG rather than SVG for reliable GitHub README display
+  - Added SVG to PNG conversion in the GitHub Actions workflow
+  - Fixed tooltip positioning to ensure it stays within viewport
+  - Enhanced spacing for better readability and visual appeal
+  - Improved dark mode support with consistent styling
+  - Removed statistics panel for a cleaner, focused display
 
 ## Development
 

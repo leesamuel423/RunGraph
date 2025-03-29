@@ -75,6 +75,20 @@ This guide will walk you through the process of setting up the Strava-GitHub Hea
      run: |
        # Save SVG output to a file
        ./strava-heatmap -generate > strava-heatmap.svg
+       echo "Generated SVG file:"
+       ls -la strava-heatmap.svg
+   
+   - name: Install SVG to PNG conversion packages
+     run: |
+       sudo apt-get update
+       sudo apt-get install -y librsvg2-bin imagemagick
+   
+   - name: Convert SVG to PNG
+     run: |
+       # Convert SVG to PNG for reliable GitHub README display
+       rsvg-convert -o strava-heatmap.png strava-heatmap.svg
+       echo "Successfully created PNG file:"
+       ls -la strava-heatmap.png
    
    - name: Checkout profile repository
      uses: actions/checkout@v3
@@ -92,10 +106,10 @@ Edit the `config.json` file in your forked repository to customize the appearanc
 {
   "activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
   "metricType": "distance",
-  "colorScheme": "github",
-  "showStats": true,
+  "colorScheme": "strava",
+  "showStats": false,
   "dateRange": "1year",
-  "cellSize": 11,
+  "cellSize": 10,
   "includePRs": true,
   "includeLocationHeatmap": false,
   "darkModeSupport": true,
@@ -148,12 +162,32 @@ The workflow is also scheduled to run daily at midnight UTC to keep your heatmap
   
   - name: Update README in profile repository
     run: |
-      # Copy your generated content to the profile README
-      # Replace the markers in the profile README
+      # Create necessary directories
+      mkdir -p profile/assets
+      
+      # Copy PNG file to profile repo assets directory
+      cp strava-heatmap.png profile/assets/
+      
+      # Update README with image link
       cd profile
+      
+      # Create a temporary file for README content
+      TEMP_FILE=$(mktemp)
+      
+      # Process the README file: before markers, image tag, after markers
+      awk 'BEGIN{p=1}/<!-- STRAVA-HEATMAP-START -->/{print;p=0}p' README.md > $TEMP_FILE
+      echo "" >> $TEMP_FILE
+      echo "![Strava Activity Heatmap](./assets/strava-heatmap.png)" >> $TEMP_FILE
+      echo "" >> $TEMP_FILE
+      awk 'BEGIN{p=0}/<!-- STRAVA-HEATMAP-END -->/{p=1}p' README.md >> $TEMP_FILE
+      
+      # Replace the original README with our modified version
+      cp $TEMP_FILE README.md
+      
+      # Commit and push changes
       git config user.name "GitHub Actions"
       git config user.email "github-actions[bot]@users.noreply.github.com"
-      git add README.md
+      git add README.md assets/strava-heatmap.png
       git commit -m "Update Strava activity heatmap [skip ci]"
       git push
   ```

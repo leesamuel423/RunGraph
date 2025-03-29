@@ -290,7 +290,7 @@ The SVG module handles the generation of SVG visualizations.
 - **GenerateHeatmap(activities []strava.SummaryActivity) (string, error)**: Creates a heatmap SVG from activity data.
 - **GenerateLocationHeatmap(activities []strava.SummaryActivity, privacyRadius int) (string, error)**: Creates a heatmap of activity locations.
 - **NewHeatmapData(activities []*strava.DailyActivity, startDate, endDate time.Time, ...) *HeatmapData**: Creates a new heatmap data structure.
-- **RenderSVG() string**: Generates the SVG for the heatmap.
+- **RenderSVG() string**: Generates the SVG for the heatmap with a 7-row layout (one row per day of the week).
 - **GetTheme(name string, customColors []string) ColorTheme**: Returns a color theme by name.
 - **GetDarkModeTheme(lightTheme ColorTheme, customDarkColors []string) ColorTheme**: Returns the dark mode variant of a color theme.
 - **GenerateTooltipSVG(data *TooltipData) string**: Creates an SVG tooltip.
@@ -349,21 +349,21 @@ The configuration file (`config.json`) follows this schema:
 {
   "activityTypes": ["Run", "Ride", "Swim", "Hike", "WeightTraining"],
   "metricType": "distance",
-  "colorScheme": "github",
-  "customColors": ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
-  "showStats": true,
+  "colorScheme": "strava",
+  "customColors": ["#f5f5f5", "#ffd4d1", "#ffad9f", "#fc7566", "#e34a33"],
+  "showStats": false,
   "statTypes": ["weekly", "monthly", "yearly"],
   "dateRange": "1year",
   "customDateRange": {
     "start": "2023-01-01",
     "end": "2023-12-31"
   },
-  "cellSize": 11,
+  "cellSize": 10,
   "includePRs": true,
   "includeLocationHeatmap": false,
   "locationPrivacyRadius": 500,
   "darkModeSupport": true,
-  "darkModeColors": ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
+  "darkModeColors": ["#2d2d2d", "#7c2c2a", "#a63b33", "#d64c3b", "#fc7566"],
   "weekStart": "Monday",
   "language": "en",
   "timeZone": "UTC",
