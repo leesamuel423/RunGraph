@@ -289,7 +289,7 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 		dayNum := label.X * 7 // Original layout: each X was a week (7 days)
 		
 		// Calculate position in new layout
-		newRow := dayNum / 16 // 16 cells per row in new layout
+		// We only need the column since all month labels are in the same row
 		newCol := dayNum % 16
 		
 		x := (newCol * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
@@ -385,60 +385,59 @@ func (h *HeatmapData) writeCells(sb *strings.Builder, totalWidth int) {
 		x := (newCol * (h.CellSize + h.CellSpacing)) + 20 // +20 for week labels
 		y := (newRow * (h.CellSize + h.CellSpacing)) + 20 // +20 for month labels
 			
-			// Determine fill color based on intensity
-			colorClass := fmt.Sprintf("intensity-%d", cell.Intensity)
+		// Determine fill color based on intensity
+		colorClass := fmt.Sprintf("intensity-%d", cell.Intensity)
+		
+		// Add cell
+		sb.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" class="heatmap-cell %s" data-date="%s" data-count="%d">`,
+			x, y, h.CellSize, h.CellSize, colorClass, cell.Date.Format("2006-01-02"), cell.Count))
+		sb.WriteString(fmt.Sprintf(`<title>%s</title></rect>`, cell.Tooltip))
+		
+		// Add PR marker if applicable
+		if cell.HasPR {
+			prX := x + (h.CellSize * 3/4)
+			prY := y + (h.CellSize * 1/4)
+			prRadius := h.CellSize / 6
 			
-			// Add cell
-			sb.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" class="heatmap-cell %s" data-date="%s" data-count="%d">`,
-				x, y, h.CellSize, h.CellSize, colorClass, cell.Date.Format("2006-01-02"), cell.Count))
-			sb.WriteString(fmt.Sprintf(`<title>%s</title></rect>`, cell.Tooltip))
-			
-			// Add PR marker if applicable
-			if cell.HasPR {
-				prX := x + (h.CellSize * 3/4)
-				prY := y + (h.CellSize * 1/4)
-				prRadius := h.CellSize / 6
-				
-				sb.WriteString(fmt.Sprintf(`<circle cx="%d" cy="%d" r="%d" class="pr-marker" />`,
-					prX, prY, prRadius))
-			}
-			
-			// Add tooltip for hover
-			tooltipWidth := 200
-			tooltipHeight := 80
-			tooltipX := x + h.CellSize + 5
-			tooltipY := y
-			
-			// If tooltip would go off right edge, place it to the left of the cell
-			if tooltipX + tooltipWidth > totalWidth {
-				tooltipX = x - tooltipWidth - 5
-			}
-			
-			sb.WriteString(fmt.Sprintf(`<g class="heatmap-tooltip" transform="translate(%d, %d)">`,
-				tooltipX, tooltipY))
-			
-			sb.WriteString(fmt.Sprintf(`<rect x="0" y="0" width="%d" height="%d" class="heatmap-tooltip-rect" />`,
-				tooltipWidth, tooltipHeight))
-			
-			// Only add detailed tooltip content if there are activities
-			if cell.Count > 0 {
-				// We'll use a simplified tooltip for now
-				sb.WriteString(fmt.Sprintf(`<text x="10" y="15" class="heatmap-tooltip-text heatmap-tooltip-header">%s</text>`,
-					cell.Date.Format("January 2, 2006")))
-				
-				sb.WriteString(fmt.Sprintf(`<text x="10" y="35" class="heatmap-tooltip-text">%d activities</text>`,
-					cell.Count))
-				
-				if cell.HasPR {
-					sb.WriteString(`<text x="10" y="55" class="heatmap-tooltip-text" fill="#ff8c00">Personal Record!</text>`)
-				}
-			} else {
-				sb.WriteString(fmt.Sprintf(`<text x="10" y="25" class="heatmap-tooltip-text">No activities on %s</text>`,
-					cell.Date.Format("January 2, 2006")))
-			}
-			
-			sb.WriteString(`</g>`)
+			sb.WriteString(fmt.Sprintf(`<circle cx="%d" cy="%d" r="%d" class="pr-marker" />`,
+				prX, prY, prRadius))
 		}
+		
+		// Add tooltip for hover
+		tooltipWidth := 200
+		tooltipHeight := 80
+		tooltipX := x + h.CellSize + 5
+		tooltipY := y
+		
+		// If tooltip would go off right edge, place it to the left of the cell
+		if tooltipX + tooltipWidth > totalWidth {
+			tooltipX = x - tooltipWidth - 5
+		}
+		
+		sb.WriteString(fmt.Sprintf(`<g class="heatmap-tooltip" transform="translate(%d, %d)">`,
+			tooltipX, tooltipY))
+		
+		sb.WriteString(fmt.Sprintf(`<rect x="0" y="0" width="%d" height="%d" class="heatmap-tooltip-rect" />`,
+			tooltipWidth, tooltipHeight))
+		
+		// Only add detailed tooltip content if there are activities
+		if cell.Count > 0 {
+			// We'll use a simplified tooltip for now
+			sb.WriteString(fmt.Sprintf(`<text x="10" y="15" class="heatmap-tooltip-text heatmap-tooltip-header">%s</text>`,
+				cell.Date.Format("January 2, 2006")))
+			
+			sb.WriteString(fmt.Sprintf(`<text x="10" y="35" class="heatmap-tooltip-text">%d activities</text>`,
+				cell.Count))
+			
+			if cell.HasPR {
+				sb.WriteString(`<text x="10" y="55" class="heatmap-tooltip-text" fill="#ff8c00">Personal Record!</text>`)
+			}
+		} else {
+			sb.WriteString(fmt.Sprintf(`<text x="10" y="25" class="heatmap-tooltip-text">No activities on %s</text>`,
+				cell.Date.Format("January 2, 2006")))
+		}
+		
+		sb.WriteString(`</g>`)
 	}
 	
 	sb.WriteString(`</g>`)
