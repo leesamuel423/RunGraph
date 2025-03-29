@@ -1,10 +1,5 @@
 # StravaGraph
 
-[![GitHub Stars](https://img.shields.io/github/stars/samuellee/StravaGraph?style=social)](https://github.com/samuellee/StravaGraph/stargazers)
-[![GitHub License](https://img.shields.io/github/license/samuellee/StravaGraph)](https://github.com/samuellee/StravaGraph/blob/main/LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/samuellee/StravaGraph)](https://goreportcard.com/report/github.com/samuellee/StravaGraph)
-[![Last Release](https://img.shields.io/github/v/release/samuellee/StravaGraph)](https://github.com/samuellee/StravaGraph/releases)
-
 A GitHub profile enhancement that displays your Strava activity as a contribution-style heatmap directly in your GitHub profile README.
 
 ## Overview
