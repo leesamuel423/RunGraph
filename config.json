@@ -7,6 +7,7 @@
   "cellSize": 10,
   "includePRs": true,
   "darkModeSupport": true,
+  "darkModeColors": ["#36363c", "#7c2c2a", "#a63b33", "#d64c3b", "#fc7566"],
   "weekStart": "Monday",
   "timeZone": "UTC",
   "debug": false
