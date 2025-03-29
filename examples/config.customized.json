@@ -1,23 +1,156 @@
 {
-  "activityTypes": ["Run", "Ride", "Swim", "Hike", "AlpineSki", "BackcountrySki"],
-  "metricType": "effort",
+  "_comment": "StravaGraph Comprehensive Configuration Example",
+
+  /* Activity Types
+   * Array of Strava activity types to include in the heatmap
+   * Available options include: Run, Ride, Swim, Hike, Walk, AlpineSki, BackcountrySki, 
+   * Canoeing, Crossfit, EBikeRide, Elliptical, Golf, Handcycle, IceSkate, InlineSkate,
+   * Kayaking, NordicSki, RockClimbing, RollerSki, Rowing, Snowboard, Snowshoe, 
+   * StairStepper, StandUpPaddling, Surfing, VirtualRide, VirtualRun, WeightTraining,
+   * Workout, Yoga
+   */
+  "activityTypes": [
+    "Run", 
+    "Ride", 
+    "Swim", 
+    "Hike", 
+    "Walk", 
+    "WeightTraining"
+  ],
+
+  /* Metric Type
+   * The metric used to determine intensity on the heatmap
+   * Options:
+   * - "distance": Total distance covered in kilometers/miles
+   * - "duration": Total time spent exercising in minutes
+   * - "elevation": Total elevation gain in meters/feet
+   * - "effort": Computed metric combining distance, elevation, and duration
+   * - "heart_rate": Average heart rate during activities
+   */
+  "metricType": "distance",
+
+  /* Color Scheme
+   * The color palette for the heatmap
+   * Built-in options: "github", "strava", "blue", "purple", "custom"
+   * When using "custom", define your own colors in the customColors array
+   */
   "colorScheme": "strava",
-  "customColors": ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
+
+  /* Custom Colors
+   * Array of 5 hex color codes from lowest to highest intensity
+   * Only used when colorScheme is set to "custom"
+   * The first color is used for days with no activity
+   */
+  "customColors": [
+    "#ebedf0", 
+    "#9be9a8", 
+    "#40c463", 
+    "#30a14e", 
+    "#216e39"
+  ],
+
+  /* Show Statistics
+   * Whether to display summary statistics alongside the heatmap
+   * When true, statTypes determines which statistics to show
+   */
   "showStats": true,
-  "statTypes": ["weekly", "monthly", "yearly"],
+
+  /* Statistic Types
+   * Array of time periods for which to display summary statistics
+   * Options: "weekly", "monthly", "yearly", "all"
+   * Only used when showStats is true
+   */
+  "statTypes": [
+    "weekly", 
+    "monthly", 
+    "yearly"
+  ],
+
+  /* Date Range
+   * Time period to visualize in the heatmap
+   * Options:
+   * - "1year": Past 365 days from today (default)
+   * - "ytd": Year to date, from January 1st of current year
+   * - "all": All available activity data
+   * - "custom": Custom date range defined by customDateRange
+   */
   "dateRange": "1year",
+
+  /* Custom Date Range
+   * Define specific start and end dates for the heatmap
+   * Only used when dateRange is set to "custom"
+   * Format: "YYYY-MM-DD"
+   */
   "customDateRange": {
     "start": "2023-01-01",
     "end": "2023-12-31"
   },
-  "cellSize": 13,
+
+  /* Cell Size
+   * Size of each heatmap cell in pixels
+   * Recommended range: 10-15
+   * Smaller values create a more compact heatmap
+   */
+  "cellSize": 11,
+
+  /* Include Personal Records
+   * Whether to highlight days when personal records were achieved
+   */
   "includePRs": true,
+
+  /* Include Location Heatmap
+   * Whether to generate an additional geographic heatmap of activity locations
+   * When true, locationPrivacyRadius determines privacy level
+   */
   "includeLocationHeatmap": false,
+
+  /* Location Privacy Radius
+   * Blur specific locations by this radius in meters
+   * Only used when includeLocationHeatmap is true
+   * Higher values provide more privacy but less precision
+   */
   "locationPrivacyRadius": 500,
+
+  /* Dark Mode Support
+   * Whether to include CSS for automatic dark mode switching
+   * When true, darkModeColors defines the colors for dark mode
+   */
   "darkModeSupport": true,
-  "darkModeColors": ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
+
+  /* Dark Mode Colors
+   * Array of 5 hex color codes for dark mode, from lowest to highest intensity
+   * Only used when darkModeSupport is true
+   */
+  "darkModeColors": [
+    "#161b22", 
+    "#0e4429", 
+    "#006d32", 
+    "#26a641", 
+    "#39d353"
+  ],
+
+  /* Week Start
+   * First day of the week in visualization
+   * Options: "Monday", "Sunday"
+   */
   "weekStart": "Monday",
+
+  /* Language
+   * Localization for labels
+   * Currently supported: "en" (English)
+   */
   "language": "en",
+
+  /* Time Zone
+   * Your local timezone for accurate day calculation
+   * Uses IANA timezone names (e.g., "America/New_York", "Europe/London")
+   * Set to "UTC" if unsure
+   */
   "timeZone": "America/Los_Angeles",
+
+  /* Debug Mode
+   * Whether to output additional debugging information
+   * Useful for troubleshooting, but should be disabled in production
+   */
   "debug": false
 }
