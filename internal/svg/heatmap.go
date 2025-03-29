@@ -327,6 +327,15 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 	
 	// Add month labels at the right positions
 	leftPadding := 70 // Same as cell padding
+	
+	// Find the first week in the data set
+	firstWeek := -1
+	for _, week := range monthStarts {
+		if firstWeek == -1 || week < firstWeek {
+			firstWeek = week
+		}
+	}
+	
 	for month, week := range monthStarts {
 		if month <= 0 || month > 12 {
 			continue
@@ -336,8 +345,9 @@ func (h *HeatmapData) writeMonthLabels(sb *strings.Builder) {
 		x := (week * (h.CellSize + h.CellSpacing)) + leftPadding
 		y := 20 // Top margin for month labels
 		
-		// Skip the first month label to prevent overlap
-		if week > 0 {
+		// Skip the first month label to prevent overlap with the second month
+		// Note: The first month may be March or any other month depending on the data range
+		if week != firstWeek {
 			// Make the font larger and bolder for better visibility
 			sb.WriteString(fmt.Sprintf(`<text x="%d" y="%d" class="heatmap-month-label">%s</text>`,
 				x, y, monthNames[month]))
