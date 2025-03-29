@@ -17,7 +17,7 @@ func GetTheme(name string, customColors []string) ColorTheme {
 	case "strava":
 		return ColorTheme{
 			Name:   "strava",
-			Colors: []string{"#f5f5f5", "#ffd4d1", "#ffad9f", "#fc7566", "#e34a33"},
+			Colors: []string{"#494950", "#ffd4d1", "#ffad9f", "#fc7566", "#e34a33"},
 		}
 	case "blue":
 		return ColorTheme{
@@ -65,7 +65,7 @@ func GetDarkModeTheme(lightTheme ColorTheme, customDarkColors []string) ColorThe
 	case "strava":
 		return ColorTheme{
 			Name:   "strava-dark",
-			Colors: []string{"#2d2d2d", "#7c2c2a", "#a63b33", "#d64c3b", "#fc7566"},
+			Colors: []string{"#36363c", "#7c2c2a", "#a63b33", "#d64c3b", "#fc7566"},
 		}
 	case "blue":
 		return ColorTheme{
