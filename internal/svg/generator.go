@@ -2,6 +2,7 @@ package svg
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -29,7 +30,8 @@ func (g *Generator) GenerateHeatmap(activities []strava.SummaryActivity) (string
 	// Get timezone location
 	location, err := g.Config.GetTimeZoneLocation()
 	if err != nil && g.Debug {
-		fmt.Println("[DEBUG]", err)
+		// Use stderr to avoid polluting the SVG output
+		fmt.Fprintf(os.Stderr, "[DEBUG] %v\n", err)
 	}
 
 	// Get date range
@@ -71,6 +73,27 @@ func (g *Generator) GenerateHeatmap(activities []strava.SummaryActivity) (string
 		
 		// Combine heatmap and stats
 		svgContent = g.combineHeatmapAndStats(svgContent, statsSVG)
+	}
+
+	// Sanity check to ensure we're returning valid SVG
+	if !strings.HasPrefix(svgContent, "<svg") {
+		if g.Debug {
+			fmt.Fprintf(os.Stderr, "[DEBUG] Generated SVG does not start with <svg> tag!\n")
+		}
+		
+		// Try to fix by extracting just the SVG content
+		svgIndex := strings.Index(svgContent, "<svg")
+		if svgIndex != -1 {
+			if g.Debug {
+				fmt.Fprintf(os.Stderr, "[DEBUG] Found <svg> tag at position %d, trimming content.\n", svgIndex)
+			}
+			svgContent = svgContent[svgIndex:]
+		}
+	}
+
+	// Validate that we have a valid SVG
+	if !strings.HasPrefix(svgContent, "<svg") {
+		return "", fmt.Errorf("generated content is not a valid SVG (does not start with <svg> tag)")
 	}
 
 	return svgContent, nil

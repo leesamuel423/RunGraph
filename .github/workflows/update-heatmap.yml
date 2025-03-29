@@ -37,17 +37,33 @@ jobs:
           ./strava-heatmap -test
           
           # Try to generate SVG with error output
-          ./strava-heatmap -generate > strava-heatmap.svg 2>generate_error.log || { 
+          # Use script to ensure clean capture of output
+          echo "Generating SVG with -generate flag..."
+          ./strava-heatmap -generate > svg_output.tmp 2>generate_error.log || { 
             echo "Error generating SVG file:"
             cat generate_error.log
             exit 1
           }
+          
+          # Ensure file starts with an SVG tag (trim any leading output)
+          echo "Cleaning SVG output..."
+          if grep -q "<svg" svg_output.tmp; then
+            # Extract everything from the first <svg tag to the end of file
+            sed -n '/<svg/,$p' svg_output.tmp > strava-heatmap.svg
+          else
+            echo "ERROR: No SVG tag found in the generated output!"
+            head -n 20 svg_output.tmp
+            cat generate_error.log
+            exit 1
+          fi
           
           # Restore original config
           mv config.json.backup config.json
           
           echo "Generated SVG file:"
           ls -la strava-heatmap.svg
+          # Show first few lines to verify it starts with SVG tag
+          head -n 5 strava-heatmap.svg
       
       - name: Checkout profile repository
         uses: actions/checkout@v3
@@ -61,10 +77,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y librsvg2-bin imagemagick
 
-      - name: Convert SVG to PNG
+      - name: Validate and fix SVG file
         run: |
           # Use the generated SVG file
           SVG_FILE="strava-heatmap.svg"
+          FIXED_SVG_FILE="strava-heatmap-fixed.svg"
           PNG_FILE="strava-heatmap.png"
           
           if [ ! -f "$SVG_FILE" ]; then
@@ -72,17 +89,54 @@ jobs:
             exit 1
           fi
           
-          echo "Using SVG file: $SVG_FILE"
+          echo "Examining SVG file: $SVG_FILE"
+          # Check file size and show first few bytes (as hex)
+          ls -la "$SVG_FILE"
+          hexdump -n 32 -C "$SVG_FILE"
           
-          # Ensure the SVG content has proper XML tags
-          if ! grep -q "<svg" "$SVG_FILE"; then
-            echo "ERROR: File does not appear to contain valid SVG content"
-            head -n 20 "$SVG_FILE"
+          # Display first few lines of the file
+          echo "First 10 lines of SVG file:"
+          head -n 10 "$SVG_FILE"
+          
+          # Check if file starts with expected XML tag
+          if ! grep -q "^<svg" "$SVG_FILE"; then
+            echo "SVG file doesn't start with <svg> tag. Attempting to fix..."
+            
+            # Find and extract the SVG content, including XML header if needed
+            if grep -q "<svg" "$SVG_FILE"; then
+              # Extract everything from the first <svg tag to the end of file
+              echo "Extracting SVG content from file..."
+              sed -n '/<svg/,$p' "$SVG_FILE" > "$FIXED_SVG_FILE"
+            else
+              echo "ERROR: No SVG tag found in the file!"
+              cat "$SVG_FILE"
+              exit 1
+            fi
+          else
+            # File already starts with <svg>, just copy it
+            cp "$SVG_FILE" "$FIXED_SVG_FILE"
+          fi
+          
+          echo "Validation complete. Fixed SVG file:"
+          ls -la "$FIXED_SVG_FILE"
+          head -n 5 "$FIXED_SVG_FILE"
+
+      - name: Convert SVG to PNG
+        run: |
+          # Use the fixed SVG file
+          FIXED_SVG_FILE="strava-heatmap-fixed.svg"
+          PNG_FILE="strava-heatmap.png"
+          
+          # Final check before conversion
+          if ! grep -q "<svg" "$FIXED_SVG_FILE"; then
+            echo "ERROR: Fixed file still does not appear to contain valid SVG content"
+            head -n 20 "$FIXED_SVG_FILE"
             exit 1
           fi
           
           # Convert SVG to PNG
-          rsvg-convert -o "$PNG_FILE" "$SVG_FILE"
+          echo "Converting fixed SVG to PNG..."
+          rsvg-convert -o "$PNG_FILE" "$FIXED_SVG_FILE"
           
           if [ ! -f "$PNG_FILE" ]; then
             echo "ERROR: PNG file was not created"

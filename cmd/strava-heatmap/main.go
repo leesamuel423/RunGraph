@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -177,7 +178,8 @@ func handleGenerateCommand(cfg *config.Config, actionsHandler *github.ActionsHan
 	// Authenticate with Strava
 	tokenManager, err := getTokenManager(actionsHandler)
 	if err != nil {
-		actionsHandler.LogError("Failed to authenticate with Strava", err)
+		// Write errors to stderr, not stdout
+		fmt.Fprintf(os.Stderr, "Error: Failed to authenticate with Strava: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -187,14 +189,14 @@ func handleGenerateCommand(cfg *config.Config, actionsHandler *github.ActionsHan
 	// Get activity date range
 	startDate, endDate, err := cfg.GetDateRange()
 	if err != nil {
-		actionsHandler.LogError("Failed to get date range", err)
+		fmt.Fprintf(os.Stderr, "Error: Failed to get date range: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Fetch activities
 	activities, err := stravaClient.GetAllActivities(startDate, endDate, cfg.ActivityTypes)
 	if err != nil {
-		actionsHandler.LogError("Failed to fetch activities", err)
+		fmt.Fprintf(os.Stderr, "Error: Failed to fetch activities: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -202,12 +204,23 @@ func handleGenerateCommand(cfg *config.Config, actionsHandler *github.ActionsHan
 	svgGenerator := svg.NewGenerator(cfg)
 	svgContent, err := svgGenerator.GenerateHeatmap(activities)
 	if err != nil {
-		actionsHandler.LogError("Failed to generate heatmap SVG", err)
+		fmt.Fprintf(os.Stderr, "Error: Failed to generate heatmap SVG: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Print SVG to stdout
-	fmt.Println(svgContent)
+	// Verify the SVG starts with an opening tag
+	if !strings.HasPrefix(svgContent, "<svg") {
+		fmt.Fprintf(os.Stderr, "Warning: Generated SVG doesn't start with <svg> tag!\n")
+		svgIndex := strings.Index(svgContent, "<svg")
+		if svgIndex != -1 {
+			// Extract just the SVG content
+			fmt.Fprintf(os.Stderr, "Fixing SVG content...\n")
+			svgContent = svgContent[svgIndex:]
+		}
+	}
+
+	// Print just the SVG content to stdout with no additional output
+	fmt.Print(svgContent)
 }
 
 // handleTestCommand tests configuration and authentication
